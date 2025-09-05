@@ -1,15 +1,14 @@
-import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import type { NextRequest } from 'next/server';
 
 type SessionUser = { id: string };
 
 const SESSION_COOKIE = 'sasqchat_session';
 
-export async function getSessionUser(req?: Request): Promise<SessionUser | null> {
+export async function getSessionUser(req?: NextRequest): Promise<SessionUser | null> {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get(SESSION_COOKIE)?.value;
+    const token = req?.cookies.get(SESSION_COOKIE)?.value;
     if (!token) return null;
     const secret = process.env.JWT_SECRET;
     if (!secret) return null;

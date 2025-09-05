@@ -1,15 +1,25 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   const [motionOk, setMotionOk] = useState(true);
-  const source = useMemo(() => {
-    const mq = matchMedia('(max-aspect-ratio: 3/4)');
-    return mq.matches ? '/video/hero_9x16.mp4' : '/video/hero_16x9.mp4';
-  }, []);
+  const [source, setSource] = useState('/video/hero_16x9.mp4');
   useEffect(() => {
-    setMotionOk(!matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const aspect = window.matchMedia('(max-aspect-ratio: 3/4)');
+      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setSource(aspect.matches ? '/video/hero_9x16.mp4' : '/video/hero_16x9.mp4');
+      setMotionOk(!motion.matches);
+      const onAspect = () => setSource(aspect.matches ? '/video/hero_9x16.mp4' : '/video/hero_16x9.mp4');
+      const onMotion = () => setMotionOk(!motion.matches);
+      aspect.addEventListener?.('change', onAspect);
+      motion.addEventListener?.('change', onMotion);
+      return () => {
+        aspect.removeEventListener?.('change', onAspect);
+        motion.removeEventListener?.('change', onMotion);
+      };
+    }
   }, []);
   return (
     <div className="fixed inset-0 overflow-hidden">

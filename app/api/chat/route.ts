@@ -15,7 +15,7 @@ const ChatSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const user = await getSessionUser();
+  const user = await getSessionUser(req);
   if (!user) return new Response('Unauthorized', { status: 401 });
   const body = await req.json().catch(() => null);
   const parsed = ChatSchema.safeParse(body);
