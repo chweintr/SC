@@ -1,28 +1,9 @@
 "use client";
 import * as React from "react";
-
-// TS-safe wrapper
-type SimliProps = React.HTMLAttributes<HTMLElement> & {
-  token?: string; agentid?: string; position?: string; overlay?: boolean | "true" | "false";
-};
-const SimliWidget: React.FC<SimliProps> =
-  (p) => React.createElement("simli-widget", p as unknown as Record<string, unknown>);
+import SimliSquare from "./SimliSquare";
 
 export default function HeroScene() {
-  const [tok, setTok] = React.useState<string|null>(null);
-  const [aid, setAid] = React.useState<string|null>(null);
-
-  async function summon() {
-    const r = await fetch("/api/simli/token", { cache: "no-store" });
-    const text = await r.text();
-    if (!r.ok) {
-      console.error("Token error", r.status, text);
-      alert(`Token ${r.status}: ${text.slice(0, 180)}`); // crude but clear
-      return;
-    }
-    const { token, agentid } = JSON.parse(text);
-    setTok(token); setAid(agentid);
-  }
+  const [showAvatar, setShowAvatar] = React.useState(false);
 
   // adjust to align with your overlay's transparent window
   const HOLE = { left:"50%", top:"55%", size:"28vw", radius:"20px" };
@@ -37,9 +18,8 @@ export default function HeroScene() {
       <div className="fixed -z-10 overflow-hidden"
            style={{ left:HOLE.left, top:HOLE.top, width:HOLE.size, height:HOLE.size,
                     transform:"translate(-50%,-50%)", borderRadius:HOLE.radius, background:"#000" }}>
-        {tok && aid ? (
-          <SimliWidget token={tok} agentid={aid} position="relative" overlay={false}
-                       style={{ display:"block", width:"100%", height:"100%" }} />
+        {showAvatar ? (
+          <SimliSquare />
         ) : (
           <div className="grid h-full w-full place-items-center text-white/80">Click "Summon"</div>
         )}
@@ -47,7 +27,12 @@ export default function HeroScene() {
 
       {/* summon */}
       <div className="fixed top-4 left-0 right-0 z-10 flex justify-center">
-        <button onClick={summon} className="rounded-xl px-4 py-2 bg-white/90 text-black shadow">Summon</button>
+        <button 
+          onClick={() => setShowAvatar(!showAvatar)} 
+          className="rounded-xl px-4 py-2 bg-white/90 text-black shadow"
+        >
+          {showAvatar ? "Hide" : "Summon"}
+        </button>
       </div>
 
       {/* top: full-page PNG overlay with transparent window */}
