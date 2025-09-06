@@ -1,16 +1,27 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { SimliClient } from 'simli-client';
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'simli-widget': {
+        token?: string;
+        agentid?: string;
+        position?: string;
+        overlay?: string;
+      };
+    }
+  }
+}
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
-  const simliVideoRef = useRef<HTMLVideoElement>(null);
-  const simliAudioRef = useRef<HTMLAudioElement>(null);
-  const simliClientRef = useRef<SimliClient | null>(null);
   const [motionOk, setMotionOk] = useState(true);
   const [source, setSource] = useState('/video/hero_16x9.mp4');
-  const [simliActive, setSimliActive] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [simliToken, setSimliToken] = useState('');
+  const [agentId, setAgentId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showWidget, setShowWidget] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -30,131 +41,113 @@ export default function HeroScene() {
   }, []);
 
   useEffect(() => {
-    // Cleanup Simli client on unmount
+    // Load Simli widget script
+    const script = document.createElement('script');
+    script.src = 'https://cdn.simli.com/widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
     return () => {
-      if (simliClientRef.current) {
-        simliClientRef.current.close();
-        simliClientRef.current = null;
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
       }
     };
   }, []);
 
   const summonSasquatch = async () => {
-    if (isConnecting) return;
-    setIsConnecting(true);
+    if (isLoading) return;
+    setIsLoading(true);
     
     try {
-      // Get credentials from backend to keep API key secure
-      const res = await fetch('/api/simli/session', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to get credentials');
-      const { apiKey, faceId } = await res.json();
+      // Step 1: Get or create agent ID
+      const agentRes = await fetch('/api/simli/agent', { method: 'GET' });
+      if (!agentRes.ok) throw new Error('Failed to get agent');
+      const { agentId: fetchedAgentId } = await agentRes.json();
+      setAgentId(fetchedAgentId);
       
-      // Create Simli client
-      const simliClient = new SimliClient();
-      simliClientRef.current = simliClient;
+      // Step 2: Get token
+      const tokenRes = await fetch('/api/simli/token', { method: 'POST' });
+      if (!tokenRes.ok) throw new Error('Failed to get token');
+      const { token } = await tokenRes.json();
       
-      // Use config with all required properties
-      const simliConfig = {
-        apiKey: apiKey,
-        faceID: faceId,
-        handleSilence: true,
-        videoRef: simliVideoRef.current!,
-        audioRef: simliAudioRef.current!,
-        maxSessionLength: 600,
-        maxIdleTime: 60,
-        session_token: '',  // Empty when using apiKey
-        SimliURL: '',       // Let SDK use default
-        maxRetryAttempts: 100,
-        retryDelay_ms: 500,
-        model: '' as const,  // Empty string for model
-      };
-      
-      simliClient.Initialize(simliConfig);
-      
-      // Set up event handlers
-      simliClient.on('connected', () => {
-        console.log('SimliClient connected');
-        setSimliActive(true);
-        setIsConnecting(false);
-      });
-
-      simliClient.on('disconnected', () => {
-        console.log('SimliClient disconnected');
-        setSimliActive(false);
-      });
-
-      simliClient.on('failed', () => {
-        console.error('SimliClient failed');
-        setIsConnecting(false);
-        alert('Failed to connect to Simli. Please try again.');
-      });
-      
-      // Start - no parameters, just like the demo
-      simliClient.start();
-      
+      setSimliToken(token);
+      setShowWidget(true);
     } catch (err) {
-      console.error('Failed to start Simli session:', err);
-      setIsConnecting(false);
-      setSimliActive(false);
-      alert(`Failed to start Simli session: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Failed to start Simli:', err);
+      alert('Failed to summon Sasquatch. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const closeWidget = () => {
+    setShowWidget(false);
+    setSimliToken('');
+    setAgentId('');
+  };
+
   return (
-    <div className="fixed inset-0 overflow-hidden">
-      {motionOk ? (
-        <video ref={bgVideoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline poster="/video/hero_poster.jpg">
-          <source src={source} type="video/mp4" />
-        </video>
-      ) : (
-        <img src="/video/hero_poster.jpg" alt="Forest" className="absolute inset-0 w-full h-full object-cover" />
+    <section className="relative w-full h-full overflow-hidden bg-black">
+      {motionOk && (
+        <video 
+          ref={bgVideoRef} 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          src={source} 
+          className="absolute inset-0 w-full h-full object-cover opacity-50"
+        />
       )}
-      {/* Device frame PNG overlay - matches full viewport/background video */}
-      <img 
-        src="/ui/device_frame.png" 
-        alt="Device frame" 
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50" 
-        style={{ zIndex: 9999 }}
-      />
       
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          {/* Simli video layer */}
-          <div className="aspect-square overflow-hidden rounded-3xl relative">
-            <video 
-              ref={simliVideoRef}
-              className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`}
-              playsInline
-              muted
-            />
-            {!simliActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90">
-                <button
-                  onClick={summonSasquatch}
-                  disabled={isConnecting}
-                  className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
-                >
-                  {isConnecting ? 'Connecting...' : 'Summon Sasquatch'}
-                </button>
-              </div>
-            )}
-          </div>
+          {!showWidget ? (
+            <div className="aspect-square overflow-hidden rounded-3xl relative bg-gradient-to-b from-amber-900/90 to-amber-950/90 flex items-center justify-center">
+              <button
+                onClick={summonSasquatch}
+                disabled={isLoading}
+                className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
+              >
+                {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
+              </button>
+            </div>
+          ) : (
+            <div className="aspect-square overflow-hidden rounded-3xl relative bg-black">
+              {simliToken && agentId && (
+                <simli-widget
+                  token={simliToken}
+                  agentid={agentId}
+                  position="relative"
+                />
+              )}
+              <button
+                onClick={closeWidget}
+                className="absolute top-4 right-4 z-50 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
       
-      {/* Hidden audio element for Simli */}
-      <audio ref={simliAudioRef} className="hidden" />
-      
-      {/* SVG definitions for the mask */}
-      <svg className="absolute" width="0" height="0">
-        <defs>
-          <clipPath id="deviceScreenMask" clipPathUnits="objectBoundingBox">
-            <rect x="0.05" y="0.05" width="0.9" height="0.9" rx="0.06" ry="0.06" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
+      {/* Background elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <img 
+          src="/images/trees-left.png" 
+          alt="" 
+          className="absolute left-0 bottom-0 h-full w-auto opacity-30"
+        />
+        <img 
+          src="/images/trees-right.png" 
+          alt="" 
+          className="absolute right-0 bottom-0 h-full w-auto opacity-30" 
+        />
+      </div>
+    </section>
   );
 }
-
-
