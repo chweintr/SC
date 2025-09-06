@@ -108,8 +108,8 @@ export default function HeroScene() {
       )}
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          {/* Simli video layer - will show through the device screen hole */}
-          <div className="aspect-square overflow-hidden rounded-3xl">
+          {/* Simli video layer - positioned behind the frame */}
+          <div className="aspect-square overflow-hidden rounded-3xl relative z-10">
             <video 
               ref={simliVideoRef}
               className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`} 
@@ -117,7 +117,7 @@ export default function HeroScene() {
               muted 
             />
             {!simliActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90 z-20">
                 <button
                   onClick={summonSasquatch}
                   disabled={isConnecting}
@@ -128,8 +128,8 @@ export default function HeroScene() {
               </div>
             )}
           </div>
-          {/* Device frame overlay - CSS border around the video */}
-          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl" style={{
+          {/* Device frame overlay - ALWAYS on top with higher z-index */}
+          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl z-30" style={{
             background: 'linear-gradient(145deg, rgba(212, 175, 55, 0.3), rgba(184, 134, 11, 0.3))',
             backdropFilter: 'blur(1px)'
           }} />
