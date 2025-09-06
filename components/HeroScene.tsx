@@ -3,28 +3,15 @@ import * as React from "react";
 import { useEffect, useRef, useState } from 'react';
 import Script from "next/script";
 
-// Local typing so TS knows about <simli-widget>
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "simli-widget": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      > & {
-        token?: string;
-        agentid?: string;
-        position?: string;
-        overlay?: boolean | "true" | "false";
-        // optional:
-        "button-text"?: string;
-        "button-image"?: string;
-        "bot-name"?: string;
-        theme?: string;
-      };
-    }
-  }
-}
+// Wrapper so TS accepts the tag in any environment
+type SimliProps = React.HTMLAttributes<HTMLElement> & {
+  token?: string;
+  agentid?: string;
+  position?: string;
+  overlay?: boolean | "true" | "false";
+};
+const SimliWidget = (props: SimliProps) =>
+  React.createElement("simli-widget", props as any);
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -116,7 +103,7 @@ export default function HeroScene() {
           ) : (
             <div className="aspect-square overflow-hidden rounded-3xl relative bg-black">
               {simliToken && agentId ? (
-                <simli-widget
+                <SimliWidget
                   token={simliToken}
                   agentid={agentId}
                   position="relative"
