@@ -74,7 +74,7 @@ export default function HeroScene() {
         alert('Failed to connect to Simli. Please try again.');
       });
       
-      // Initialize with API key and face ID (like the Python SDK)
+      // Initialize with API key and face ID (standard SDK pattern)
       const simliConfig = {
         apiKey: apiKey,
         faceID: faceId,
@@ -84,7 +84,13 @@ export default function HeroScene() {
         maxSessionLength: 600,
         maxIdleTime: 60,
         enableConsoleLogs: true,
-      };
+        // Add required properties for TypeScript
+        session_token: '',
+        SimliURL: '',
+        maxRetryAttempts: 3,
+        retryDelay_ms: 500,
+        model: 'fasttalk',
+      } as any; // Override TypeScript for now
       
       simliClient.Initialize(simliConfig);
       
