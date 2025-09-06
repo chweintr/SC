@@ -4,6 +4,8 @@ export function GET(req: NextRequest) {
   return NextResponse.json({
     hasApiKey: !!process.env.SIMLI_API_KEY,
     hasAgentId: !!process.env.SIMLI_AGENT_ID,
+    hasFaceId: !!process.env.SIMLI_FACE_ID,
+    hasElevenId: !!process.env.ELEVENLABS_VOICE_ID,
     originSeen: origin,
     node: process.version,
   });
