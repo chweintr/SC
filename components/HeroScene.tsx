@@ -53,13 +53,20 @@ export default function HeroScene() {
       const simliClient = new SimliClient();
       simliClientRef.current = simliClient;
       
-      // Use exact pattern from working demo
+      // Use config with all required properties
       const simliConfig = {
         apiKey: apiKey,
         faceID: faceId,
         handleSilence: true,
         videoRef: simliVideoRef.current!,
         audioRef: simliAudioRef.current!,
+        maxSessionLength: 600,
+        maxIdleTime: 60,
+        session_token: '',  // Empty when using apiKey
+        SimliURL: '',       // Let SDK use default
+        maxRetryAttempts: 100,
+        retryDelay_ms: 500,
+        model: '' as const,  // Empty string for model
       };
       
       simliClient.Initialize(simliConfig);
