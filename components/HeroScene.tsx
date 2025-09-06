@@ -144,8 +144,14 @@ export default function HeroScene() {
           <img 
             src="/ui/device_frame.png" 
             alt="Device frame" 
-            className="absolute inset-0 w-full h-full pointer-events-none z-50" 
-            style={{ zIndex: 9999 }}
+            className="absolute inset-0 pointer-events-none z-50" 
+            style={{ 
+              zIndex: 9999,
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center'
+            }}
           />
         </div>
       </div>
