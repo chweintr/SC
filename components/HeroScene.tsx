@@ -3,8 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
+  const simliVideoRef = useRef<HTMLVideoElement>(null);
   const [motionOk, setMotionOk] = useState(true);
   const [source, setSource] = useState('/video/hero_16x9.mp4');
+  const [simliActive, setSimliActive] = useState(false);
+  const [simliStream, setSimliStream] = useState<MediaStream | null>(null);
+  
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       const aspect = window.matchMedia('(max-aspect-ratio: 3/4)');
@@ -21,6 +25,26 @@ export default function HeroScene() {
       };
     }
   }, []);
+
+  useEffect(() => {
+    if (simliStream && simliVideoRef.current) {
+      simliVideoRef.current.srcObject = simliStream;
+    }
+  }, [simliStream]);
+
+  const summonSasquatch = async () => {
+    setSimliActive(true);
+    try {
+      const res = await fetch('/api/simli/session', { method: 'POST' });
+      const data = await res.json();
+      console.log('Simli session:', data);
+      // TODO: Initialize Simli WebRTC client with sessionToken and iceConfig
+      // For now, show a placeholder message
+    } catch (err) {
+      console.error('Failed to start Simli session:', err);
+    }
+  };
+
   return (
     <div className="fixed inset-0 overflow-hidden">
       {motionOk ? (
@@ -32,12 +56,40 @@ export default function HeroScene() {
       )}
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          <div className="aspect-square rounded-2xl overflow-hidden" style={{ filter: 'saturate(0.95) contrast(1.05) brightness(0.98)' }}>
-            <video className="w-full h-full object-cover" playsInline muted />
+          <div className="aspect-square overflow-hidden relative">
+            <video 
+              ref={simliVideoRef}
+              className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`} 
+              playsInline 
+              muted 
+              style={{ 
+                clipPath: 'url(#deviceScreenMask)',
+                WebkitClipPath: 'url(#deviceScreenMask)'
+              }}
+            />
+            {!simliActive && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+                <button
+                  onClick={summonSasquatch}
+                  className="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105"
+                >
+                  Summon Sasquatch
+                </button>
+              </div>
+            )}
           </div>
           <img src="/ui/device_frame.png" alt="Device frame" className="absolute inset-0 w-full h-full pointer-events-none" />
         </div>
       </div>
+      
+      {/* SVG definitions for the mask */}
+      <svg className="absolute" width="0" height="0">
+        <defs>
+          <clipPath id="deviceScreenMask" clipPathUnits="objectBoundingBox">
+            <rect x="0.05" y="0.05" width="0.9" height="0.9" rx="0.06" ry="0.06" />
+          </clipPath>
+        </defs>
+      </svg>
     </div>
   );
 }
