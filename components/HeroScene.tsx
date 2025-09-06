@@ -1,89 +1,128 @@
 "use client";
 import * as React from "react";
 
+// Wrapper so TS is happy
 type SimliProps = React.HTMLAttributes<HTMLElement> & {
-  token?: string; agentid?: string; position?: string; overlay?: boolean | "true" | "false";
+  token?: string;
+  agentid?: string;
+  position?: string;
+  overlay?: boolean | "true" | "false";
 };
-const SimliWidget: React.FC<SimliProps> =
-  (props) => React.createElement("simli-widget", props as unknown as Record<string, unknown>);
+const SimliWidget: React.FC<SimliProps> = (props) =>
+  React.createElement("simli-widget", props as unknown as Record<string, unknown>);
 
 export default function HeroScene() {
-  const [token, setToken] = React.useState<string | null>(null);
+  const [simliToken, setSimliToken] = React.useState<string | null>(null);
   const [agentId, setAgentId] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [showWidget, setShowWidget] = React.useState(false);
+  const [motionOk, setMotionOk] = React.useState(true);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setMotionOk(!motion.matches);
+      const onMotion = () => setMotionOk(!motion.matches);
+      motion.addEventListener?.('change', onMotion);
+      return () => {
+        motion.removeEventListener?.('change', onMotion);
+      };
+    }
+  }, []);
 
   async function summon() {
-    const r = await fetch("/api/simli/token", { cache: "no-store" });
-    const body = await r.json().catch(async () => ({ raw: await r.text() }));
-    if (!r.ok || !body?.token) {
-      console.error("Token route failed", { status: r.status, body });
-      alert(`Token error ${r.status}: ${body?.details ?? body?.error ?? "unknown"}`);
-      return;
+    setIsLoading(true);
+    try {
+      const r = await fetch("/api/simli/token", { cache: "no-store" });
+      const body = await r.json().catch(async () => ({ raw: await r.text() }));
+      if (!r.ok || !body?.token) {
+        console.error("Token route failed", { status: r.status, body });
+        alert(`Token error ${r.status}: ${body?.details ?? body?.error ?? "unknown"}`);
+        return;
+      }
+      setSimliToken(body.token);
+      setAgentId(body.agentid);
+      setShowWidget(true);
+    } catch (err) {
+      console.error("Failed to summon:", err);
+      alert('Failed to summon Sasquatch. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    setToken(body.token);
-    setAgentId(body.agentid);
   }
 
-  // Tune these four to match the overlay cutout (percentages of viewport)
-  const HOLE = {
-    left: "50%",    // center of the hole on screen (x)
-    top: "55%",     // center (y)
-    sizeVw: "28vw", // square width/height
-    radius: "20px", // match the cutout corner radius
-    rotate: "0deg", // small adjust if needed
-    skewY: "0deg",
-  };
+  function closeWidget() {
+    setShowWidget(false);
+    setSimliToken(null);
+    setAgentId(null);
+  }
 
   return (
     <>
-      {/* 1) Full-page 16:9 background video */}
-      <video
-        className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
-        autoPlay muted loop playsInline
-        src="/video/hero_16x9.mp4"
-      />
-
-      {/* 2) Square Simli widget positioned under the overlay hole */}
-      <div
-        className="fixed -z-10 overflow-hidden"
-        style={{
-          left: HOLE.left,
-          top: HOLE.top,
-          width: HOLE.sizeVw,
-          height: HOLE.sizeVw,              // square
-          transform: `translate(-50%, -50%) rotate(${HOLE.rotate}) skewY(${HOLE.skewY})`,
-          borderRadius: HOLE.radius,
-          pointerEvents: "auto",
-        }}
-      >
-        {token && agentId ? (
-          <SimliWidget
-            token={token}
-            agentid={agentId}
-            position="relative"
-            overlay={false}                  // we control framing
-            style={{ display: "block", width: "100%", height: "100%" }}
+      <section className="relative w-full h-full overflow-hidden bg-black">
+        {/* Background video */}
+        {motionOk && (
+          <video 
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+            src="/video/hero_16x9.mp4"
+            className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
-        ) : (
-          <div className="grid h-full w-full place-items-center bg-black/70 text-white/80">
-            Click "Summon"
-          </div>
         )}
-      </div>
-
-      {/* 3) Summon button */}
-      <div className="fixed top-4 left-0 right-0 z-10 flex justify-center">
-        <button onClick={summon} className="rounded-xl px-4 py-2 bg-white/90 text-black shadow">
-          Summon
-        </button>
-      </div>
-
-      {/* 4) Top overlay image that covers the whole page with the transparent cutout */}
-      <img
-        src="/public_ui_device_frame.png"
-        alt=""
-        className="fixed inset-0 -z-20 pointer-events-none"
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
-      />
+        
+        <div className="relative z-10 flex items-center justify-center w-full h-full">
+          <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
+            {!showWidget ? (
+              <div className="aspect-square relative">
+                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-gradient-to-b from-amber-900/90 to-amber-950/90 flex items-center justify-center">
+                  <button 
+                    onClick={summon} 
+                    disabled={isLoading}
+                    className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
+                  >
+                    {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="aspect-square relative">
+                {/* Simli widget layer */}
+                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-black">
+                  {simliToken && agentId ? (
+                    <SimliWidget
+                      token={simliToken}
+                      agentid={agentId}
+                      position="relative"
+                      overlay={false}
+                    />
+                  ) : null}
+                </div>
+                
+                <button
+                  onClick={closeWidget}
+                  className="absolute top-4 right-4 z-50 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
+                  aria-label="Close"
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Device frame overlay - FULL 16:9 with transparent cutout for Simli */}
+        <img 
+          src="/ui/device_frame.png" 
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50"
+          style={{ zIndex: 9999 }}
+        />
+        
+      </section>
     </>
   );
 }
