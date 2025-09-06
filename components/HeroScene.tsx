@@ -44,10 +44,13 @@ export default function HeroScene() {
     setIsConnecting(true);
     
     try {
-      // Get session token from our API
+      // Get session token and ICE servers from our backend
       const res = await fetch('/api/simli/session', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to get session');
-      const { sessionToken, iceConfig } = await res.json();
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.details || 'Failed to get session');
+      }
+      const { sessionToken, iceServers } = await res.json();
       
       // Initialize Simli client
       const simliClient = new SimliClient();
@@ -59,53 +62,39 @@ export default function HeroScene() {
         setSimliActive(true);
         setIsConnecting(false);
       });
-      
+
       simliClient.on('disconnected', () => {
         console.log('Simli disconnected');
         setSimliActive(false);
       });
-      
-      simliClient.on('failed', (reason) => {
-        console.error('Simli failed:', reason);
+
+      simliClient.on('failed', () => {
+        console.error('Simli connection failed');
         setIsConnecting(false);
+        alert('Failed to connect to Simli. Please try again.');
       });
       
-      // Initialize with video and audio elements
-      simliClient.Initialize({
-        apiKey: '',
+      // Initialize with video and audio elements (using session_token from backend)
+      const simliConfig = {
         session_token: sessionToken,
-        faceID: '', // Face ID is already included in the session token
         handleSilence: true,
         videoRef: simliVideoRef.current!,
         audioRef: simliAudioRef.current!,
         maxSessionLength: 600,
         maxIdleTime: 60,
         enableConsoleLogs: true,
-        SimliURL: '',
-        maxRetryAttempts: 3,
-        retryDelay_ms: 500,
-        model: 'fasttalk',
-      });
+      };
+      
+      simliClient.Initialize(simliConfig);
       
       // Start the connection with ICE servers
-      await simliClient.start(iceConfig.iceServers);
+      simliClient.start(iceServers);
       
     } catch (err) {
       console.error('Failed to start Simli session:', err);
-      // Try to get the actual error message from the API
-      if (err instanceof Error && err.message === 'Failed to get session') {
-        // Fetch the error details from the API response
-        try {
-          const errorRes = await fetch('/api/simli/session', { method: 'POST' });
-          const errorData = await errorRes.json();
-          console.error('API Error Details:', errorData);
-          alert(`Simli Error: ${errorData.error || 'Unknown error'}${errorData.details ? '\n\nDetails: ' + errorData.details : ''}`);
-        } catch {
-          alert('Simli session failed - check console for details');
-        }
-      }
       setIsConnecting(false);
       setSimliActive(false);
+      alert(`Failed to start Simli session: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

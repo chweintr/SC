@@ -7,16 +7,12 @@ export async function POST(_req: NextRequest) {
   const adminKill = process.env.KILL_SWITCH === 'true';
   if (adminKill) return new Response('Service unavailable', { status: 503 });
   try {
-    if (!process.env.SIMLI_API_KEY) {
-      console.error('Missing SIMLI_API_KEY');
-      return new Response(JSON.stringify({ error: 'Missing SIMLI_API_KEY' }), { status: 500, headers: { 'content-type': 'application/json' } });
-    }
-    if (!process.env.SIMLI_FACE_ID) {
-      console.error('Missing SIMLI_FACE_ID');
-      return new Response(JSON.stringify({ error: 'Missing SIMLI_FACE_ID' }), { status: 500, headers: { 'content-type': 'application/json' } });
-    }
     const session = await createSimliSession();
-    return new Response(JSON.stringify(session), {
+    // Return in the format expected by the client
+    return new Response(JSON.stringify({
+      sessionToken: session.session_token,
+      iceServers: session.iceServers,
+    }), {
       headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
     });
   } catch (err) {
