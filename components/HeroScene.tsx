@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
+import Script from "next/script";
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -27,19 +28,6 @@ export default function HeroScene() {
     }
   }, []);
 
-  useEffect(() => {
-    // Load Simli widget script
-    const script = document.createElement('script');
-    script.src = 'https://cdn.simli.com/widget.js';
-    script.async = true;
-    document.body.appendChild(script);
-    
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
 
   const summonSasquatch = async () => {
     if (isLoading) return;
@@ -74,7 +62,9 @@ export default function HeroScene() {
   };
 
   return (
-    <section className="relative w-full h-full overflow-hidden bg-black">
+    <>
+      <Script src="https://cdn.simli.com/widget.js" strategy="afterInteractive" />
+      <section className="relative w-full h-full overflow-hidden bg-black">
       {motionOk && (
         <video 
           ref={bgVideoRef} 
@@ -136,5 +126,6 @@ export default function HeroScene() {
         />
       </div>
     </section>
+    </>
   );
 }
