@@ -54,32 +54,48 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   
   const sessionData = await sessionRes.json();
   console.log('Got session token:', !!sessionData.session_token);
+  console.log('Session response:', JSON.stringify(sessionData, null, 2));
   
-  // Step 2: Get ICE servers
-  const iceRes = await fetch('https://api.simli.ai/getIceServers', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ apiKey }),
-    cache: 'no-store',
-  });
+  // Step 2: Try to get ICE servers, but use default if not available
+  let iceServers: IceServer[] = [];
   
-  if (!iceRes.ok) {
-    const errorText = await iceRes.text();
-    console.error('Simli getIceServer error:', {
-      status: iceRes.status,
-      body: errorText
+  try {
+    const iceRes = await fetch('https://api.simli.ai/getIceServers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey, // Try with header auth too
+      },
+      body: JSON.stringify({ apiKey }),
+      cache: 'no-store',
     });
-    throw new Error(`Simli ICE server failed: ${iceRes.status} - ${errorText}`);
+    
+    if (iceRes.ok) {
+      const iceData = await iceRes.json();
+      iceServers = iceData.iceServers || [];
+      console.log('Got ICE servers:', iceServers.length);
+    } else {
+      console.warn('ICE servers endpoint returned:', iceRes.status, await iceRes.text());
+      console.log('Using default STUN servers');
+      // Use default public STUN servers as fallback
+      iceServers = [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ];
+    }
+  } catch (error) {
+    console.warn('Failed to fetch ICE servers:', error);
+    console.log('Using default STUN servers');
+    // Use default public STUN servers as fallback
+    iceServers = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ];
   }
-  
-  const iceData = await iceRes.json();
-  console.log('Got ICE servers:', iceData.iceServers?.length || 0);
   
   return {
     session_token: sessionData.session_token,
-    iceServers: iceData.iceServers || [],
+    iceServers,
   };
 }
 
