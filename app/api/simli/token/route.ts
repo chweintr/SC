@@ -1,48 +1,62 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const SIMLI_API_KEY = process.env.SIMLI_API_KEY;
-  const FACE_ID = process.env.SIMLI_FACE_ID;
-  
-  if (!SIMLI_API_KEY || !FACE_ID) {
-    return NextResponse.json({ error: "Missing SIMLI_API_KEY or SIMLI_FACE_ID" }, { status: 500 });
+  const SIMLI_AGENT_ID = process.env.SIMLI_AGENT_ID;
+  if (!SIMLI_API_KEY || !SIMLI_AGENT_ID) {
+    return NextResponse.json(
+      { error: "missing_env", details: "SIMLI_API_KEY or SIMLI_AGENT_ID" },
+      { status: 500 }
+    );
   }
 
+  // Allow current origin + common dev origins
+  const reqOrigin = req.headers.get("origin") ?? new URL(req.url).origin;
+  const originAllowList = Array.from(
+    new Set([reqOrigin, "http://localhost:3000"])
+  );
+
+  // Build payload; authenticate via header.
+  const payload = {
+    expiryStamp: Math.floor(Date.now() / 1000) + 1800,
+    originAllowList,
+    createTranscript: true,
+  };
+
+  const r = await fetch("https://api.simli.ai/auto/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-simli-api-key": SIMLI_API_KEY, // auth in header
+    },
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  const text = await r.text();
+
+  if (!r.ok) {
+    // TEMP: bubble details to client so you can see exact reason
+    return NextResponse.json(
+      { error: "simli_token_error", status: r.status, details: text },
+      { status: 500 }
+    );
+  }
+
+  // Expect { token: "..." }
+  let token: string | undefined;
   try {
-    // First get or create the agent
-    const origin = new URL(req.url).origin;
-    const agentRes = await fetch(`${origin}/api/simli/agent`);
-    if (!agentRes.ok) {
-      const errorText = await agentRes.text();
-      console.error('Agent route error:', errorText);
-      throw new Error(`Failed to get agent ID: ${errorText}`);
-    }
-    const { agentId } = await agentRes.json();
-
-    // Then create the token
-    const tokenRes = await fetch("https://api.simli.ai/auto/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        expiryStamp: Math.floor(Date.now() / 1000) + 3600,
-        simliAPIKey: SIMLI_API_KEY,
-        originAllowList: [origin],
-        createTranscript: true
-      })
-    });
-
-    if (!tokenRes.ok) {
-      const text = await tokenRes.text();
-      return NextResponse.json({ error: `token error: ${text}` }, { status: 500 });
-    }
-
-    const { token } = await tokenRes.json();
-    return NextResponse.json({ token, agentid: agentId });
-    
-  } catch (err) {
-    console.error('Token route error:', err);
-    return NextResponse.json({ 
-      error: err instanceof Error ? err.message : 'Failed to create token' 
-    }, { status: 500 });
+    token = JSON.parse(text)?.token;
+  } catch (_) {}
+  if (!token) {
+    return NextResponse.json(
+      { error: "bad_token_response", details: text },
+      { status: 500 }
+    );
   }
+
+  return NextResponse.json(
+    { token, agentid: SIMLI_AGENT_ID },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
