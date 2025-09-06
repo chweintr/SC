@@ -60,7 +60,11 @@ export default function HeroScene() {
 
   return (
     <>
-      <Script src="https://cdn.simli.com/widget.js" strategy="afterInteractive" />
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/@simli/widget@latest/dist/simli-widget.js" 
+        strategy="afterInteractive"
+        onError={(e) => console.error('Failed to load Simli widget:', e)}
+      />
       
       {/* Full viewport container */}
       <section className="relative w-screen h-screen overflow-hidden bg-black">
