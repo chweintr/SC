@@ -140,11 +140,13 @@ export default function HeroScene() {
               </div>
             )}
           </div>
-          {/* Device frame overlay - HIGHEST z-index so it's always on top */}
-          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl z-50" style={{
-            background: 'linear-gradient(145deg, rgba(212, 175, 55, 0.3), rgba(184, 134, 11, 0.3))',
-            backdropFilter: 'blur(1px)'
-          }} />
+          {/* Device frame PNG overlay - HIGHEST z-index so it's always on top */}
+          <img 
+            src="/ui/device_frame.png" 
+            alt="Device frame" 
+            className="absolute inset-0 w-full h-full pointer-events-none z-50" 
+            style={{ zIndex: 9999 }}
+          />
         </div>
       </div>
       
