@@ -3,7 +3,7 @@ import { createSimliSession } from '@/lib/simli';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(_req: NextRequest) {
+export async function POST() {
   const adminKill = process.env.KILL_SWITCH === 'true';
   if (adminKill) return new Response('Service unavailable', { status: 503 });
   try {

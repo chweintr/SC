@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const apiKey = process.env.SIMLI_API_KEY;
   const faceId = process.env.SIMLI_FACE_ID;
   
@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest) {
       'https://app.simli.ai/api/startAudioToVideoSession'
     ];
     
-    let results = [];
+    const results = [];
     
     for (const endpoint of endpoints) {
       console.log(`Testing endpoint: ${endpoint}`);
