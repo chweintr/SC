@@ -2,25 +2,21 @@
 import * as React from "react";
 import Script from "next/script";
 
-// TS typing for custom element (keeps CI happy)
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "simli-widget": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>, HTMLElement
-      > & {
-        token?: string;
-        agentid?: string;
-        position?: string;
-        overlay?: boolean | "true" | "false";
-      };
-    }
-  }
-}
+// Strongly-typed props for the custom element
+type SimliWidgetProps = React.HTMLAttributes<HTMLElement> & {
+  token?: string;
+  agentid?: string;
+  position?: string;
+  overlay?: boolean | "true" | "false";
+  "button-text"?: string;
+  "button-image"?: string;
+  "bot-name"?: string;
+  theme?: string;
+};
 
-// Export to make this a module
-export {};
+// Wrapper avoids JSX.IntrinsicElements typing entirely
+const SimliWidget: React.FC<SimliWidgetProps> = (props) =>
+  React.createElement("simli-widget", props as unknown as Record<string, unknown>);
 
 export default function HeroScene() {
   const [simliToken, setSimliToken] = React.useState<string | null>(null);
@@ -85,7 +81,7 @@ export default function HeroScene() {
             ) : (
               <div className="aspect-square overflow-hidden rounded-3xl bg-black relative">
                 {simliToken && agentId ? (
-                  <simli-widget
+                  <SimliWidget
                     token={simliToken}
                     agentid={agentId}
                     position="relative"
