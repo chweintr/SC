@@ -23,6 +23,19 @@ export default function HeroScene() {
   const [agentId, setAgentId] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [showWidget, setShowWidget] = React.useState(false);
+  const [motionOk, setMotionOk] = React.useState(true);
+  
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setMotionOk(!motion.matches);
+      const onMotion = () => setMotionOk(!motion.matches);
+      motion.addEventListener?.('change', onMotion);
+      return () => {
+        motion.removeEventListener?.('change', onMotion);
+      };
+    }
+  }, []);
 
   async function summon() {
     setIsLoading(true);
@@ -53,18 +66,20 @@ export default function HeroScene() {
 
   return (
     <>
-      <Script src="https://cdn.simli.com/widget.js" strategy="afterInteractive" />
+      <Script src="https://cdn.jsdelivr.net/npm/@simli/widget@latest/dist/simli-widget.js" strategy="afterInteractive" />
       
       <section className="relative w-full h-full overflow-hidden bg-black">
         {/* Background video */}
-        <video 
-          autoPlay 
-          muted 
-          loop 
-          playsInline
-          src="/video/hero_16x9.mp4"
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
-        />
+        {motionOk && (
+          <video 
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+            src="/video/hero_16x9.mp4"
+            className="absolute inset-0 w-full h-full object-cover opacity-50"
+          />
+        )}
         
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
@@ -102,19 +117,6 @@ export default function HeroScene() {
           </div>
         </div>
         
-        {/* Background elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <img 
-            src="/images/trees-left.png" 
-            alt="" 
-            className="absolute left-0 bottom-0 h-full w-auto opacity-30"
-          />
-          <img 
-            src="/images/trees-right.png" 
-            alt="" 
-            className="absolute right-0 bottom-0 h-full w-auto opacity-30" 
-          />
-        </div>
       </section>
     </>
   );
