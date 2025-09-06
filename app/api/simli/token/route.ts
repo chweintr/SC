@@ -10,14 +10,16 @@ export async function GET(req: Request) {
 
   try {
     // First get or create the agent
-    const agentRes = await fetch(new URL('/api/simli/agent', req.url).toString());
+    const origin = new URL(req.url).origin;
+    const agentRes = await fetch(`${origin}/api/simli/agent`);
     if (!agentRes.ok) {
-      throw new Error('Failed to get agent ID');
+      const errorText = await agentRes.text();
+      console.error('Agent route error:', errorText);
+      throw new Error(`Failed to get agent ID: ${errorText}`);
     }
     const { agentId } = await agentRes.json();
 
     // Then create the token
-    const origin = new URL(req.url).origin;
     const tokenRes = await fetch("https://api.simli.ai/auto/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

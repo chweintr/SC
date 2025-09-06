@@ -115,11 +115,12 @@ export default function HeroScene() {
                   ) : null}
                 </div>
                 
-                {/* Device frame overlay */}
+                {/* Device frame overlay - HIGHEST z-index to stay on top */}
                 <img 
                   src="/ui/device_frame.png" 
                   alt=""
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-50"
+                  style={{ zIndex: 9999 }}
                 />
                 
                 <button
