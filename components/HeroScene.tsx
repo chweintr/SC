@@ -4,6 +4,7 @@ import Script from "next/script";
 
 // TS typing for custom element (keeps CI happy)
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       "simli-widget": React.DetailedHTMLProps<
@@ -17,6 +18,9 @@ declare global {
     }
   }
 }
+
+// Export to make this a module
+export {};
 
 export default function HeroScene() {
   const [simliToken, setSimliToken] = React.useState<string | null>(null);
