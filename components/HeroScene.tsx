@@ -92,6 +92,18 @@ export default function HeroScene() {
       
     } catch (err) {
       console.error('Failed to start Simli session:', err);
+      // Try to get the actual error message from the API
+      if (err instanceof Error && err.message === 'Failed to get session') {
+        // Fetch the error details from the API response
+        try {
+          const errorRes = await fetch('/api/simli/session', { method: 'POST' });
+          const errorData = await errorRes.json();
+          console.error('API Error Details:', errorData);
+          alert(`Simli Error: ${errorData.error || 'Unknown error'}`);
+        } catch {
+          alert('Simli session failed - check console for details');
+        }
+      }
       setIsConnecting(false);
       setSimliActive(false);
     }
@@ -108,8 +120,8 @@ export default function HeroScene() {
       )}
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          {/* Simli video layer - positioned behind the frame */}
-          <div className="aspect-square overflow-hidden rounded-3xl relative z-10">
+          {/* Simli video layer - LOWEST z-index so it appears behind everything */}
+          <div className="aspect-square overflow-hidden rounded-3xl relative z-0">
             <video 
               ref={simliVideoRef}
               className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`} 
@@ -117,7 +129,7 @@ export default function HeroScene() {
               muted 
             />
             {!simliActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90 z-20">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90 z-10">
                 <button
                   onClick={summonSasquatch}
                   disabled={isConnecting}
@@ -128,8 +140,8 @@ export default function HeroScene() {
               </div>
             )}
           </div>
-          {/* Device frame overlay - ALWAYS on top with higher z-index */}
-          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl z-30" style={{
+          {/* Device frame overlay - HIGHEST z-index so it's always on top */}
+          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl z-50" style={{
             background: 'linear-gradient(145deg, rgba(212, 175, 55, 0.3), rgba(184, 134, 11, 0.3))',
             backdropFilter: 'blur(1px)'
           }} />
