@@ -65,8 +65,8 @@ export default function HeroScene() {
         setSimliActive(false);
       });
       
-      simliClient.on('error', (error) => {
-        console.error('Simli error:', error);
+      simliClient.on('failed', (reason) => {
+        console.error('Simli failed:', reason);
         setIsConnecting(false);
       });
       
