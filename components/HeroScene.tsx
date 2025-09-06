@@ -84,25 +84,44 @@ export default function HeroScene() {
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
             {!showWidget ? (
-              <div className="aspect-square overflow-hidden rounded-3xl relative bg-gradient-to-b from-amber-900/90 to-amber-950/90 flex items-center justify-center">
-                <button 
-                  onClick={summon} 
-                  disabled={isLoading}
-                  className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
-                >
-                  {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
-                </button>
+              <div className="aspect-square relative">
+                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-gradient-to-b from-amber-900/90 to-amber-950/90 flex items-center justify-center">
+                  <button 
+                    onClick={summon} 
+                    disabled={isLoading}
+                    className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
+                  >
+                    {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
+                  </button>
+                </div>
+                {/* Device frame overlay */}
+                <img 
+                  src="/ui/device_frame.png" 
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+                />
               </div>
             ) : (
-              <div className="aspect-square overflow-hidden rounded-3xl bg-black relative">
-                {simliToken && agentId ? (
-                  <SimliWidget
-                    token={simliToken}
-                    agentid={agentId}
-                    position="relative"
-                    overlay="true"
-                  />
-                ) : null}
+              <div className="aspect-square relative">
+                {/* Simli widget layer */}
+                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-black">
+                  {simliToken && agentId ? (
+                    <SimliWidget
+                      token={simliToken}
+                      agentid={agentId}
+                      position="relative"
+                      overlay="true"
+                    />
+                  ) : null}
+                </div>
+                
+                {/* Device frame overlay */}
+                <img 
+                  src="/ui/device_frame.png" 
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+                />
+                
                 <button
                   onClick={closeWidget}
                   className="absolute top-4 right-4 z-50 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
