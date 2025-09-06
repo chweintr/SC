@@ -1,13 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
+import { SimliClient } from 'simli-client';
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   const simliVideoRef = useRef<HTMLVideoElement>(null);
+  const simliAudioRef = useRef<HTMLAudioElement>(null);
+  const simliClientRef = useRef<SimliClient | null>(null);
   const [motionOk, setMotionOk] = useState(true);
   const [source, setSource] = useState('/video/hero_16x9.mp4');
   const [simliActive, setSimliActive] = useState(false);
-  const [simliStream, setSimliStream] = useState<MediaStream | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -27,21 +30,70 @@ export default function HeroScene() {
   }, []);
 
   useEffect(() => {
-    if (simliStream && simliVideoRef.current) {
-      simliVideoRef.current.srcObject = simliStream;
-    }
-  }, [simliStream]);
+    // Cleanup Simli client on unmount
+    return () => {
+      if (simliClientRef.current) {
+        simliClientRef.current.close();
+        simliClientRef.current = null;
+      }
+    };
+  }, []);
 
   const summonSasquatch = async () => {
-    setSimliActive(true);
+    if (isConnecting) return;
+    setIsConnecting(true);
+    
     try {
+      // Get session token from our API
       const res = await fetch('/api/simli/session', { method: 'POST' });
-      const data = await res.json();
-      console.log('Simli session:', data);
-      // TODO: Initialize Simli WebRTC client with sessionToken and iceConfig
-      // For now, show a placeholder message
+      if (!res.ok) throw new Error('Failed to get session');
+      const { sessionToken, iceConfig } = await res.json();
+      
+      // Initialize Simli client
+      const simliClient = new SimliClient();
+      simliClientRef.current = simliClient;
+      
+      // Set up event handlers
+      simliClient.on('connected', () => {
+        console.log('Simli connected');
+        setSimliActive(true);
+        setIsConnecting(false);
+      });
+      
+      simliClient.on('disconnected', () => {
+        console.log('Simli disconnected');
+        setSimliActive(false);
+      });
+      
+      simliClient.on('error', (error) => {
+        console.error('Simli error:', error);
+        setIsConnecting(false);
+      });
+      
+      // Initialize with video and audio elements
+      simliClient.Initialize({
+        apiKey: '',
+        session_token: sessionToken,
+        faceID: process.env.NEXT_PUBLIC_SIMLI_FACE_ID || '',
+        handleSilence: true,
+        videoRef: simliVideoRef.current!,
+        audioRef: simliAudioRef.current!,
+        maxSessionLength: 600,
+        maxIdleTime: 60,
+        enableConsoleLogs: true,
+        SimliURL: '',
+        maxRetryAttempts: 3,
+        retryDelay_ms: 500,
+        model: 'fasttalk',
+      });
+      
+      // Start the connection with ICE servers
+      await simliClient.start(iceConfig.iceServers);
+      
     } catch (err) {
       console.error('Failed to start Simli session:', err);
+      setIsConnecting(false);
+      setSimliActive(false);
     }
   };
 
@@ -68,9 +120,10 @@ export default function HeroScene() {
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90">
                 <button
                   onClick={summonSasquatch}
-                  className="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105"
+                  disabled={isConnecting}
+                  className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
                 >
-                  Summon Sasquatch
+                  {isConnecting ? 'Connecting...' : 'Summon Sasquatch'}
                 </button>
               </div>
             )}
@@ -79,6 +132,9 @@ export default function HeroScene() {
           <img src="/ui/device_frame.png" alt="Device frame" className="absolute inset-0 w-full h-full pointer-events-none" />
         </div>
       </div>
+      
+      {/* Hidden audio element for Simli */}
+      <audio ref={simliAudioRef} className="hidden" />
       
       {/* SVG definitions for the mask */}
       <svg className="absolute" width="0" height="0">
