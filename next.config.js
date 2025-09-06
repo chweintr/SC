@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const CSP = `
   default-src 'self';
-  script-src 'self' https://cdn.simli.com 'unsafe-eval';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval';
   connect-src 'self' https://api.simli.ai https://*.simli.ai wss://*.simli.ai;
   img-src 'self' data: blob:;
   style-src 'self' 'unsafe-inline';
