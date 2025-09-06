@@ -99,7 +99,7 @@ export default function HeroScene() {
           const errorRes = await fetch('/api/simli/session', { method: 'POST' });
           const errorData = await errorRes.json();
           console.error('API Error Details:', errorData);
-          alert(`Simli Error: ${errorData.error || 'Unknown error'}`);
+          alert(`Simli Error: ${errorData.error || 'Unknown error'}${errorData.details ? '\n\nDetails: ' + errorData.details : ''}`);
         } catch {
           alert('Simli session failed - check console for details');
         }
