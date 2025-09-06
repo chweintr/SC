@@ -1,5 +1,8 @@
+type IceServer = { urls: string | string[]; username?: string; credential?: string };
+
 export type SimliSessionResponse = {
   session_token: string;
+  iceServers: IceServer[];
 };
 
 export async function createSimliSession(): Promise<SimliSessionResponse> {
@@ -52,8 +55,31 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   const sessionData = await sessionRes.json();
   console.log('Got session token:', !!sessionData.session_token);
   
+  // Step 2: Get ICE servers (required for server-side auth)
+  const iceRes = await fetch('https://api.simli.ai/getIceServer', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ apiKey }),
+    cache: 'no-store',
+  });
+  
+  if (!iceRes.ok) {
+    const errorText = await iceRes.text();
+    console.error('Simli getIceServer error:', {
+      status: iceRes.status,
+      body: errorText
+    });
+    throw new Error(`Simli ICE server failed: ${iceRes.status} - ${errorText}`);
+  }
+  
+  const iceData = await iceRes.json();
+  console.log('Got ICE servers config');
+  
   return {
     session_token: sessionData.session_token,
+    iceServers: iceData,
   };
 }
 

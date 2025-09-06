@@ -50,7 +50,7 @@ export default function HeroScene() {
         const error = await res.json();
         throw new Error(error.details || 'Failed to get session');
       }
-      const { sessionToken } = await res.json();
+      const { sessionToken, iceServers } = await res.json();
       
       // Initialize Simli client
       const simliClient = new SimliClient();
@@ -93,7 +93,7 @@ export default function HeroScene() {
       simliClient.Initialize(simliConfig);
       
       // Start the connection with ICE servers
-      simliClient.start();
+      simliClient.start(iceServers);
       
     } catch (err) {
       console.error('Failed to start Simli session:', err);
