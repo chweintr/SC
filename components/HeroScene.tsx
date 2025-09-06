@@ -44,57 +44,45 @@ export default function HeroScene() {
     setIsConnecting(true);
     
     try {
-      // Get credentials from our backend
+      // Get credentials from backend to keep API key secure
       const res = await fetch('/api/simli/session', { method: 'POST' });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.details || 'Failed to get credentials');
-      }
+      if (!res.ok) throw new Error('Failed to get credentials');
       const { apiKey, faceId } = await res.json();
       
-      // Initialize Simli client
+      // Create Simli client
       const simliClient = new SimliClient();
       simliClientRef.current = simliClient;
       
-      // Set up event handlers
-      simliClient.on('connected', () => {
-        console.log('Simli connected');
-        setSimliActive(true);
-        setIsConnecting(false);
-      });
-
-      simliClient.on('disconnected', () => {
-        console.log('Simli disconnected');
-        setSimliActive(false);
-      });
-
-      simliClient.on('failed', () => {
-        console.error('Simli connection failed');
-        setIsConnecting(false);
-        alert('Failed to connect to Simli. Please try again.');
-      });
-      
-      // Initialize with API key and face ID (standard SDK pattern)
+      // Use exact pattern from working demo
       const simliConfig = {
         apiKey: apiKey,
         faceID: faceId,
         handleSilence: true,
         videoRef: simliVideoRef.current!,
         audioRef: simliAudioRef.current!,
-        maxSessionLength: 600,
-        maxIdleTime: 60,
-        enableConsoleLogs: true,
-        // Add required properties for TypeScript
-        session_token: '',
-        SimliURL: '',
-        maxRetryAttempts: 3,
-        retryDelay_ms: 500,
-        model: 'fasttalk',
-      } as Parameters<typeof simliClient.Initialize>[0];
+      };
       
       simliClient.Initialize(simliConfig);
       
-      // Start the connection - SDK handles everything internally
+      // Set up event handlers
+      simliClient.on('connected', () => {
+        console.log('SimliClient connected');
+        setSimliActive(true);
+        setIsConnecting(false);
+      });
+
+      simliClient.on('disconnected', () => {
+        console.log('SimliClient disconnected');
+        setSimliActive(false);
+      });
+
+      simliClient.on('failed', () => {
+        console.error('SimliClient failed');
+        setIsConnecting(false);
+        alert('Failed to connect to Simli. Please try again.');
+      });
+      
+      // Start - no parameters, just like the demo
       simliClient.start();
       
     } catch (err) {

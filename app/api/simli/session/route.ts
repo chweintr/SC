@@ -1,27 +1,28 @@
 import { NextRequest } from 'next/server';
-import { getSimliCredentials } from '@/lib/simli';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST() {
   const adminKill = process.env.KILL_SWITCH === 'true';
   if (adminKill) return new Response('Service unavailable', { status: 503 });
-  try {
-    const { apiKey, faceId } = await getSimliCredentials();
-    // Return credentials for client to use directly with SDK
-    return new Response(JSON.stringify({
-      apiKey,
-      faceId,
-    }), {
-      headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-    });
-  } catch (err) {
-    console.error('Simli credentials error:', err);
-    return new Response(JSON.stringify({ error: 'Failed to get credentials', details: err instanceof Error ? err.message : 'Unknown error' }), { 
+  
+  const apiKey = process.env.SIMLI_API_KEY;
+  const faceId = process.env.SIMLI_FACE_ID;
+  
+  if (!apiKey || !faceId) {
+    return new Response(JSON.stringify({ error: 'Missing Simli configuration' }), { 
       status: 500, 
       headers: { 'content-type': 'application/json' } 
     });
   }
+  
+  // Return credentials for the client to use
+  return new Response(JSON.stringify({
+    apiKey,
+    faceId,
+  }), {
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+  });
 }
 
 
