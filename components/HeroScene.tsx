@@ -1,18 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 
-// TypeScript declaration for the Simli widget custom element
-declare module 'react' {
-  interface IntrinsicElements {
-    'simli-widget': {
-      token?: string;
-      agentid?: string;
-      position?: string;
-      overlay?: string;
-    };
-  }
-}
-
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   const [motionOk, setMotionOk] = useState(true);
