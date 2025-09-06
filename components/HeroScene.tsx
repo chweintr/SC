@@ -75,7 +75,9 @@ export default function HeroScene() {
       });
       
       // Initialize with video and audio elements (using session_token from backend)
-      const simliConfig = {
+      const simliConfig: any = {
+        apiKey: '', // Empty when using session_token
+        faceID: '', // Empty when using session_token
         session_token: sessionToken,
         handleSilence: true,
         videoRef: simliVideoRef.current!,
@@ -83,6 +85,9 @@ export default function HeroScene() {
         maxSessionLength: 600,
         maxIdleTime: 60,
         enableConsoleLogs: true,
+        SimliURL: '', // Let the SDK handle the default
+        maxRetryAttempts: 3,
+        retryDelay_ms: 500,
       };
       
       simliClient.Initialize(simliConfig);

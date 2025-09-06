@@ -11,7 +11,7 @@ export async function generateAssistantReply(args: GenerateArgs): Promise<string
   return text;
 }
 
-export async function generateSummary(messages: { role: string; content: string }[]): Promise<string> {
+export async function generateSummary(_messages: { role: string; content: string }[]): Promise<string> {
   return 'Summary of the conversation.';
 }
 
