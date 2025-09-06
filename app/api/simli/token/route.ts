@@ -13,12 +13,20 @@ export async function GET(req: NextRequest) {
 
   try {
     // First get or create agent from face ID
+    console.log('Token route - Getting agent for face ID:', SIMLI_FACE_ID);
     const { agentId } = await getOrCreateAgent(SIMLI_API_KEY, SIMLI_FACE_ID);
+    console.log('Token route - Got agent ID:', agentId);
 
     // Allow current origin + common dev origins
     const reqOrigin = req.headers.get("origin") ?? new URL(req.url).origin;
     const originAllowList = Array.from(
-      new Set([reqOrigin, "http://localhost:3000"])
+      new Set([
+        reqOrigin, 
+        "http://localhost:3000",
+        "https://sc-production-c3f8.up.railway.app",
+        "https://www.sasqchat.com",
+        "https://sasqchat.com"
+      ])
     );
 
     // Build payload with API key in body
@@ -65,7 +73,11 @@ export async function GET(req: NextRequest) {
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (err) {
-    console.error('Token route error:', err);
+    console.error('Token route error - Full details:', {
+      error: err,
+      message: err instanceof Error ? err.message : 'Unknown error',
+      stack: err instanceof Error ? err.stack : undefined
+    });
     return NextResponse.json(
       { error: "agent_error", details: err instanceof Error ? err.message : 'Unknown error' },
       { status: 500 }
