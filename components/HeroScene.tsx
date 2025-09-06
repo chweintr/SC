@@ -44,13 +44,13 @@ export default function HeroScene() {
     setIsConnecting(true);
     
     try {
-      // Get session token and ICE servers from our backend
+      // Get credentials from our backend
       const res = await fetch('/api/simli/session', { method: 'POST' });
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.details || 'Failed to get session');
+        throw new Error(error.details || 'Failed to get credentials');
       }
-      const { sessionToken, iceServers } = await res.json();
+      const { apiKey, faceId } = await res.json();
       
       // Initialize Simli client
       const simliClient = new SimliClient();
@@ -74,26 +74,22 @@ export default function HeroScene() {
         alert('Failed to connect to Simli. Please try again.');
       });
       
-      // Initialize with video and audio elements (using session_token from backend)
+      // Initialize with API key and face ID (like the Python SDK)
       const simliConfig = {
-        apiKey: '', // Empty when using session_token
-        faceID: '', // Empty when using session_token
-        session_token: sessionToken,
+        apiKey: apiKey,
+        faceID: faceId,
         handleSilence: true,
         videoRef: simliVideoRef.current!,
         audioRef: simliAudioRef.current!,
         maxSessionLength: 600,
         maxIdleTime: 60,
         enableConsoleLogs: true,
-        SimliURL: '', // Let the SDK handle the default
-        maxRetryAttempts: 3,
-        retryDelay_ms: 500,
-      } as Parameters<typeof simliClient.Initialize>[0];
+      };
       
       simliClient.Initialize(simliConfig);
       
-      // Start the connection with ICE servers
-      simliClient.start(iceServers);
+      // Start the connection - SDK handles everything internally
+      simliClient.start();
       
     } catch (err) {
       console.error('Failed to start Simli session:', err);

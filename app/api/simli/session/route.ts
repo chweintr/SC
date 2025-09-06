@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createSimliSession } from '@/lib/simli';
+import { getSimliCredentials } from '@/lib/simli';
 
 export const dynamic = 'force-dynamic';
 
@@ -7,17 +7,17 @@ export async function POST() {
   const adminKill = process.env.KILL_SWITCH === 'true';
   if (adminKill) return new Response('Service unavailable', { status: 503 });
   try {
-    const session = await createSimliSession();
-    // Return in the format expected by the client
+    const { apiKey, faceId } = await getSimliCredentials();
+    // Return credentials for client to use directly with SDK
     return new Response(JSON.stringify({
-      sessionToken: session.session_token,
-      iceServers: session.iceServers,
+      apiKey,
+      faceId,
     }), {
       headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
     });
   } catch (err) {
-    console.error('Simli session error:', err);
-    return new Response(JSON.stringify({ error: 'Failed to create session', details: err instanceof Error ? err.message : 'Unknown error' }), { 
+    console.error('Simli credentials error:', err);
+    return new Response(JSON.stringify({ error: 'Failed to get credentials', details: err instanceof Error ? err.message : 'Unknown error' }), { 
       status: 500, 
       headers: { 'content-type': 'application/json' } 
     });
