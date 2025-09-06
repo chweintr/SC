@@ -13,7 +13,7 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
     throw new Error('Missing SIMLI_API_KEY or SIMLI_FACE_ID');
   }
   
-  console.log('Creating Simli session...');
+  console.log('Creating Simli session with API key:', apiKey?.substring(0, 10) + '...');
   
   // Step 1: Create audio to video session
   const sessionRes = await fetch('https://api.simli.ai/startAudioToVideoSession', {
