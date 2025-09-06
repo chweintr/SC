@@ -12,6 +12,9 @@
     "prisma:deploy": "prisma migrate deploy",
     "seed": "tsx scripts/seed.ts"
   },
+  "engines": {
+    "node": ">=20 <21"
+  },
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "jsonwebtoken": "^9.0.2",

@@ -1,49 +1,29 @@
-export const dynamic = 'force-dynamic';
+import { NextResponse } from "next/server";
 
-export async function POST() {
-  const apiKey = process.env.SIMLI_API_KEY;
-  
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'Missing Simli API key' }), { 
-      status: 500, 
-      headers: { 'content-type': 'application/json' } 
-    });
+export async function GET(req: Request) {
+  const SIMLI_API_KEY = process.env.SIMLI_API_KEY;
+  const SIMLI_AGENT_ID = process.env.SIMLI_AGENT_ID;
+  if (!SIMLI_API_KEY || !SIMLI_AGENT_ID) {
+    return NextResponse.json({ error: "Missing SIMLI_API_KEY or SIMLI_AGENT_ID" }, { status: 500 });
   }
-  
-  try {
-    // Get token from Simli Auto API with correct format
-    const response = await fetch('https://api.simli.ai/auto/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        expiryStamp: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-        simliAPIKey: apiKey,
-        originAllowList: [
-          'http://localhost:3000',
-          'https://*.railway.app',
-          process.env.PRODUCTION_URL || '',
-        ].filter(Boolean),
-        createTranscript: true,
-      }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Simli Auto token error:', error);
-      throw new Error(`Failed to get token: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return new Response(JSON.stringify({ token: data.token || data }), {
-      headers: { 'content-type': 'application/json' },
-    });
-  } catch (err) {
-    console.error('Simli Auto error:', err);
-    return new Response(JSON.stringify({ error: 'Failed to get token' }), { 
-      status: 500, 
-      headers: { 'content-type': 'application/json' } 
-    });
+
+  const origin = new URL(req.url).origin; // allow current origin
+  const r = await fetch("https://api.simli.ai/auto/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      expiryStamp: Math.floor(Date.now() / 1000) + 3600,
+      simliAPIKey: SIMLI_API_KEY,
+      originAllowList: [origin],
+      createTranscript: true
+    })
+  });
+
+  if (!r.ok) {
+    const text = await r.text();
+    return NextResponse.json({ error: `token error: ${text}` }, { status: 500 });
   }
+
+  const { token } = await r.json();
+  return NextResponse.json({ token, agentid: SIMLI_AGENT_ID });
 }
