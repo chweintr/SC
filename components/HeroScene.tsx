@@ -90,7 +90,7 @@ export default function HeroScene() {
         maxRetryAttempts: 3,
         retryDelay_ms: 500,
         model: 'fasttalk',
-      } as any; // Override TypeScript for now
+      } as Parameters<typeof simliClient.Initialize>[0];
       
       simliClient.Initialize(simliConfig);
       
