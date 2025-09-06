@@ -21,8 +21,9 @@ export async function GET(req: NextRequest) {
       new Set([reqOrigin, "http://localhost:3000"])
     );
 
-    // Build payload; authenticate via header.
+    // Build payload with API key in body
     const payload = {
+      simliAPIKey: SIMLI_API_KEY,
       expiryStamp: Math.floor(Date.now() / 1000) + 1800,
       originAllowList,
       createTranscript: true,
@@ -32,7 +33,6 @@ export async function GET(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-simli-api-key": SIMLI_API_KEY, // auth in header
       },
       body: JSON.stringify(payload),
       cache: "no-store",

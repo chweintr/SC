@@ -62,7 +62,8 @@ export default function HeroScene() {
     <>
       <Script src="https://cdn.simli.com/widget.js" strategy="afterInteractive" />
       
-      <section className="relative w-full h-full overflow-hidden bg-black">
+      {/* Full viewport container */}
+      <section className="relative w-screen h-screen overflow-hidden bg-black">
         {/* Background video */}
         {motionOk && (
           <video 
@@ -75,56 +76,63 @@ export default function HeroScene() {
           />
         )}
         
-        <div className="relative z-10 flex items-center justify-center w-full h-full">
-          <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-            {!showWidget ? (
-              <div className="aspect-square relative">
-                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-gradient-to-b from-amber-900/90 to-amber-950/90 flex items-center justify-center">
+        {/* Device frame overlay at full viewport */}
+        <div className="absolute inset-0 w-full h-full">
+          <img 
+            src="/ui/device_frame.png" 
+            alt=""
+            className="w-full h-full object-cover pointer-events-none"
+            style={{ position: 'absolute', inset: 0, zIndex: 20 }}
+          />
+          
+          {/* Interactive area - positioned to match device frame cutout */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Adjust this container size to match your device frame's screen area */}
+            <div className="relative" style={{ 
+              width: '60%', 
+              maxWidth: '800px',
+              aspectRatio: '1/1'
+            }}>
+              {!showWidget ? (
+                <div className="w-full h-full flex items-center justify-center">
                   <button 
                     onClick={summon} 
                     disabled={isLoading}
-                    className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100"
+                    className="px-8 py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-700 disabled:opacity-50 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105 disabled:scale-100 z-30 relative"
                   >
                     {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="aspect-square relative">
-                {/* Simli widget layer */}
-                <div className="absolute inset-0 overflow-hidden rounded-3xl bg-black">
-                  {simliToken && agentId ? (
-                    <SimliWidget
-                      token={simliToken}
-                      agentid={agentId}
-                      position="relative"
-                      overlay={false}
-                    />
-                  ) : null}
+              ) : (
+                <div className="w-full h-full relative">
+                  {/* Simli widget */}
+                  <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                    {simliToken && agentId ? (
+                      <SimliWidget
+                        token={simliToken}
+                        agentid={agentId}
+                        position="relative"
+                        overlay={false}
+                        className="w-full h-full"
+                      />
+                    ) : null}
+                  </div>
+                  
+                  {/* Close button */}
+                  <button
+                    onClick={closeWidget}
+                    className="absolute top-4 right-4 z-30 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
+                    aria-label="Close"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
                 </div>
-                
-                <button
-                  onClick={closeWidget}
-                  className="absolute top-4 right-4 z-50 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
-                  aria-label="Close"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-        
-        {/* Device frame overlay - FULL 16:9 with transparent cutout for Simli */}
-        <img 
-          src="/ui/device_frame.png" 
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50"
-          style={{ zIndex: 9999 }}
-        />
-        
       </section>
     </>
   );
