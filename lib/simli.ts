@@ -56,7 +56,7 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   console.log('Got session token:', !!sessionData.session_token);
   
   // Step 2: Get ICE servers
-  const iceRes = await fetch('https://api.simli.ai/getIceServer', {
+  const iceRes = await fetch('https://api.simli.ai/getIceServers', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
