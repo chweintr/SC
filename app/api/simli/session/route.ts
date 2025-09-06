@@ -11,7 +11,6 @@ export async function POST() {
     // Return in the format expected by the client
     return new Response(JSON.stringify({
       sessionToken: session.session_token,
-      iceServers: session.iceServers,
     }), {
       headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
     });

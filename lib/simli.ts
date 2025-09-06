@@ -1,8 +1,5 @@
-type IceServer = { urls: string | string[]; username?: string; credential?: string };
-
 export type SimliSessionResponse = {
   session_token: string;
-  iceServers: IceServer[];
 };
 
 export async function createSimliSession(): Promise<SimliSessionResponse> {
@@ -54,48 +51,9 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   
   const sessionData = await sessionRes.json();
   console.log('Got session token:', !!sessionData.session_token);
-  console.log('Session response:', JSON.stringify(sessionData, null, 2));
-  
-  // Step 2: Try to get ICE servers, but use default if not available
-  let iceServers: IceServer[] = [];
-  
-  try {
-    const iceRes = await fetch('https://api.simli.ai/getIceServers', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey, // Try with header auth too
-      },
-      body: JSON.stringify({ apiKey }),
-      cache: 'no-store',
-    });
-    
-    if (iceRes.ok) {
-      const iceData = await iceRes.json();
-      iceServers = iceData.iceServers || [];
-      console.log('Got ICE servers:', iceServers.length);
-    } else {
-      console.warn('ICE servers endpoint returned:', iceRes.status, await iceRes.text());
-      console.log('Using default STUN servers');
-      // Use default public STUN servers as fallback
-      iceServers = [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ];
-    }
-  } catch (error) {
-    console.warn('Failed to fetch ICE servers:', error);
-    console.log('Using default STUN servers');
-    // Use default public STUN servers as fallback
-    iceServers = [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
-    ];
-  }
   
   return {
     session_token: sessionData.session_token,
-    iceServers,
   };
 }
 
