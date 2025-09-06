@@ -5,6 +5,7 @@ import Script from "next/script";
 
 // Local typing so TS knows about <simli-widget>
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       "simli-widget": React.DetailedHTMLProps<
