@@ -26,13 +26,15 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   }
   
   // Step 1: Create audio to video session
+  // Try different authentication methods
   const sessionRes = await fetch('https://api.simli.ai/startAudioToVideoSession', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-API-Key': apiKey, // Try as header too
     },
     body: JSON.stringify({
-      apiKey,
+      apiKey, // Keep in body as well
       faceId,
       handleSilence: true,
       maxSessionLength: 600,
