@@ -13,10 +13,12 @@ export default function HeroScene() {
   const [aid, setAid] = React.useState<string|null>(null);
 
   async function summon() {
-    const r = await fetch("/api/simli/token", { cache:"no-store" });
-    const body = await r.json().catch(async () => ({ raw: await r.text() }));
-    if (!r.ok || !body?.token) { console.error(body); alert("Token error"); return; }
-    setTok(body.token); setAid(body.agentid);
+    const r = await fetch("/api/simli/token", { cache: "no-store" });
+    const t = await r.text();
+    try { console.log(JSON.parse(t)); } catch { console.log(t); }
+    if (!r.ok) { alert("Token error " + r.status); return; }
+    const { token, agentid } = JSON.parse(t);
+    setTok(token); setAid(agentid);
   }
 
   // adjust to align with your overlay's transparent window
