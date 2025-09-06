@@ -56,11 +56,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Expect { token: "..." }
+    // Simli returns { session_token: "..." }
+    let parsedResponse: any;
     let token: string | undefined;
     try {
-      token = JSON.parse(text)?.token;
-    } catch (_) {}
+      parsedResponse = JSON.parse(text);
+      token = parsedResponse?.session_token || parsedResponse?.token;
+    } catch (_) {
+      return NextResponse.json(
+        { error: "bad_token_response", details: text },
+        { status: 500 }
+      );
+    }
+    
     if (!token) {
       return NextResponse.json(
         { error: "bad_token_response", details: text },
