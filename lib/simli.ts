@@ -13,7 +13,17 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
     throw new Error('Missing SIMLI_API_KEY or SIMLI_FACE_ID');
   }
   
-  console.log('Creating Simli session with API key:', apiKey?.substring(0, 10) + '...');
+  // Log API key info for debugging
+  console.log('Creating Simli session with:', {
+    apiKeyPrefix: apiKey.substring(0, 10) + '...',
+    apiKeyLength: apiKey.length,
+    faceId: faceId
+  });
+  
+  // Validate API key format
+  if (apiKey.length < 20) {
+    console.warn('Warning: API key seems too short. Simli API keys are typically longer.');
+  }
   
   // Step 1: Create audio to video session
   const sessionRes = await fetch('https://api.simli.ai/startAudioToVideoSession', {
