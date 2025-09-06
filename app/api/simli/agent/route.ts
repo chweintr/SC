@@ -23,7 +23,7 @@ export async function GET() {
     if (listRes.ok) {
       const agents = await listRes.json();
       // Find agent with matching face_id
-      const existingAgent = agents.find((agent: any) => agent.face_id === faceId);
+      const existingAgent = agents.find((agent: { face_id: string; id: string }) => agent.face_id === faceId);
       
       if (existingAgent) {
         console.log('Found existing agent:', existingAgent.id);

@@ -1,16 +1,15 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'simli-widget': {
-        token?: string;
-        agentid?: string;
-        position?: string;
-        overlay?: string;
-      };
-    }
+// TypeScript declaration for the Simli widget custom element
+declare module 'react' {
+  interface IntrinsicElements {
+    'simli-widget': {
+      token?: string;
+      agentid?: string;
+      position?: string;
+      overlay?: string;
+    };
   }
 }
 
