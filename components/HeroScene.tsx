@@ -14,10 +14,13 @@ export default function HeroScene() {
 
   async function summon() {
     const r = await fetch("/api/simli/token", { cache: "no-store" });
-    const t = await r.text();
-    try { console.log(JSON.parse(t)); } catch { console.log(t); }
-    if (!r.ok) { alert("Token error " + r.status); return; }
-    const { token, agentid } = JSON.parse(t);
+    const text = await r.text();
+    if (!r.ok) {
+      console.error("Token error", r.status, text);
+      alert(`Token ${r.status}: ${text.slice(0, 180)}`); // crude but clear
+      return;
+    }
+    const { token, agentid } = JSON.parse(text);
     setTok(token); setAid(agentid);
   }
 
