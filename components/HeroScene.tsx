@@ -128,8 +128,11 @@ export default function HeroScene() {
               </div>
             )}
           </div>
-          {/* Device frame overlay - the screen area is transparent so Simli shows through */}
-          <img src="/ui/device_frame.png" alt="Device frame" className="absolute inset-0 w-full h-full pointer-events-none" />
+          {/* Device frame overlay - CSS border around the video */}
+          <div className="absolute inset-0 pointer-events-none border-8 border-amber-400/80 rounded-3xl shadow-2xl" style={{
+            background: 'linear-gradient(145deg, rgba(212, 175, 55, 0.3), rgba(184, 134, 11, 0.3))',
+            backdropFilter: 'blur(1px)'
+          }} />
         </div>
       </div>
       
