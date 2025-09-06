@@ -40,7 +40,10 @@ export async function GET(req: NextRequest) {
   }
 
   let token: string | undefined;
-  try { token = JSON.parse(raw).token; } catch {}
+  try { 
+    const parsed = JSON.parse(raw);
+    token = parsed.session_token || parsed.token;
+  } catch {}
   if (!token) {
     return NextResponse.json({ error: "bad_token_response", raw }, { status: 500 });
   }
