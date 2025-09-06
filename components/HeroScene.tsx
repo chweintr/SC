@@ -74,7 +74,7 @@ export default function HeroScene() {
       simliClient.Initialize({
         apiKey: '',
         session_token: sessionToken,
-        faceID: process.env.NEXT_PUBLIC_SIMLI_FACE_ID || '',
+        faceID: '', // Face ID is already included in the session token
         handleSilence: true,
         videoRef: simliVideoRef.current!,
         audioRef: simliAudioRef.current!,

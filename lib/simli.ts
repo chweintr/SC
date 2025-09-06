@@ -39,6 +39,11 @@ export async function createSimliSession(): Promise<SimliSessionResponse> {
   }
   
   const data = await res.json();
+  console.log('Simli API response:', {
+    hasSessionToken: !!data.sessionToken,
+    hasIceConfig: !!data.iceConfig,
+    iceServersCount: data.iceConfig?.iceServers?.length || 0
+  });
   return { sessionToken: data.sessionToken, iceConfig: data.iceConfig } as SimliSessionResponse;
 }
 
