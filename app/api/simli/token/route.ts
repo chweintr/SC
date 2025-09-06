@@ -84,7 +84,12 @@ async function createTokenWithAgent(apiKey: string, agentId: string, req: NextRe
     },
     body: JSON.stringify({
       expiryStamp: Math.floor(Date.now() / 1000) + 1800,
-      originAllowList: [origin, "http://localhost:3000"],
+      simliAPIKey: apiKey,
+      originAllowList: [
+        origin, 
+        "http://localhost:3000",
+        "https://localhost:8080"
+      ],
       createTranscript: true
     }),
     cache: "no-store",
