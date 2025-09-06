@@ -1,6 +1,29 @@
 "use client";
+import * as React from "react";
 import { useEffect, useRef, useState } from 'react';
 import Script from "next/script";
+
+// Local typing so TS knows about <simli-widget>
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      "simli-widget": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        token?: string;
+        agentid?: string;
+        position?: string;
+        overlay?: boolean | "true" | "false";
+        // optional:
+        "button-text"?: string;
+        "button-image"?: string;
+        "bot-name"?: string;
+        theme?: string;
+      };
+    }
+  }
+}
 
 export default function HeroScene() {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -91,13 +114,14 @@ export default function HeroScene() {
             </div>
           ) : (
             <div className="aspect-square overflow-hidden rounded-3xl relative bg-black">
-              {simliToken && agentId && (
+              {simliToken && agentId ? (
                 <simli-widget
                   token={simliToken}
                   agentid={agentId}
                   position="relative"
+                  overlay="true"
                 />
-              )}
+              ) : null}
               <button
                 onClick={closeWidget}
                 className="absolute top-4 right-4 z-50 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
