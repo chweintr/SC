@@ -81,6 +81,14 @@ export default function HeroScene() {
           />
         )}
         
+        {/* Device frame overlay - covers entire 16:9 viewport */}
+        <img 
+          src="/ui/device_frame.png" 
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50"
+          style={{ zIndex: 9999 }}
+        />
+        
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
             {!showWidget ? (
@@ -94,12 +102,6 @@ export default function HeroScene() {
                     {isLoading ? 'Summoning...' : 'Summon Sasquatch'}
                   </button>
                 </div>
-                {/* Device frame overlay */}
-                <img 
-                  src="/ui/device_frame.png" 
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
-                />
               </div>
             ) : (
               <div className="aspect-square relative">
@@ -114,14 +116,6 @@ export default function HeroScene() {
                     />
                   ) : null}
                 </div>
-                
-                {/* Device frame overlay - HIGHEST z-index to stay on top */}
-                <img 
-                  src="/ui/device_frame.png" 
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none z-50"
-                  style={{ zIndex: 9999 }}
-                />
                 
                 <button
                   onClick={closeWidget}
