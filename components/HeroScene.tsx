@@ -56,19 +56,16 @@ export default function HeroScene() {
       )}
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          <div className="aspect-square overflow-hidden relative">
+          {/* Simli video layer - will show through the device screen hole */}
+          <div className="aspect-square overflow-hidden rounded-3xl">
             <video 
               ref={simliVideoRef}
               className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`} 
               playsInline 
               muted 
-              style={{ 
-                clipPath: 'url(#deviceScreenMask)',
-                WebkitClipPath: 'url(#deviceScreenMask)'
-              }}
             />
             {!simliActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90">
                 <button
                   onClick={summonSasquatch}
                   className="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full shadow-lg transform transition hover:scale-105"
@@ -78,6 +75,7 @@ export default function HeroScene() {
               </div>
             )}
           </div>
+          {/* Device frame overlay - the screen area is transparent so Simli shows through */}
           <img src="/ui/device_frame.png" alt="Device frame" className="absolute inset-0 w-full h-full pointer-events-none" />
         </div>
       </div>
