@@ -81,14 +81,6 @@ export default function HeroScene() {
           />
         )}
         
-        {/* Device frame overlay - covers entire 16:9 viewport */}
-        <img 
-          src="/ui/device_frame.png" 
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50"
-          style={{ zIndex: 9999 }}
-        />
-        
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
             {!showWidget ? (
@@ -130,6 +122,14 @@ export default function HeroScene() {
             )}
           </div>
         </div>
+        
+        {/* Device frame overlay - FULL 16:9 with transparent cutout for Simli */}
+        <img 
+          src="/ui/device_frame.png" 
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50"
+          style={{ zIndex: 9999 }}
+        />
         
       </section>
     </>
