@@ -118,18 +118,26 @@ export default function HeroScene() {
       ) : (
         <img src="/video/hero_poster.jpg" alt="Forest" className="absolute inset-0 w-full h-full object-cover" />
       )}
+      {/* Device frame PNG overlay - matches full viewport/background video */}
+      <img 
+        src="/ui/device_frame.png" 
+        alt="Device frame" 
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none z-50" 
+        style={{ zIndex: 9999 }}
+      />
+      
       <div className="relative z-10 flex items-center justify-center w-full h-full">
         <div className="relative" style={{ width: 'clamp(280px, 50vmin, 720px)' }}>
-          {/* Simli video layer - LOWEST z-index so it appears behind everything */}
-          <div className="aspect-square overflow-hidden rounded-3xl relative z-0">
+          {/* Simli video layer */}
+          <div className="aspect-square overflow-hidden rounded-3xl relative">
             <video 
               ref={simliVideoRef}
-              className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`} 
-              playsInline 
-              muted 
+              className={`w-full h-full object-cover transition-opacity duration-1000 ${simliActive ? 'opacity-100' : 'opacity-0'}`}
+              playsInline
+              muted
             />
             {!simliActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90 z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-900/90 to-amber-950/90">
                 <button
                   onClick={summonSasquatch}
                   disabled={isConnecting}
@@ -140,19 +148,6 @@ export default function HeroScene() {
               </div>
             )}
           </div>
-          {/* Device frame PNG overlay - HIGHEST z-index so it's always on top */}
-          <img 
-            src="/ui/device_frame.png" 
-            alt="Device frame" 
-            className="absolute inset-0 pointer-events-none z-50" 
-            style={{ 
-              zIndex: 9999,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              objectPosition: 'center'
-            }}
-          />
         </div>
       </div>
       
