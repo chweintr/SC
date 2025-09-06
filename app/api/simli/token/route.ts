@@ -1,94 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrCreateAgent } from '@/lib/simli-agent';
 
 export async function GET(req: NextRequest) {
-  const SIMLI_API_KEY = process.env.SIMLI_API_KEY;
-  const SIMLI_FACE_ID = process.env.SIMLI_FACE_ID;
-  if (!SIMLI_API_KEY || !SIMLI_FACE_ID) {
-    return NextResponse.json(
-      { error: "missing_env", details: "SIMLI_API_KEY or SIMLI_FACE_ID" },
-      { status: 500 }
-    );
+  const apiKey = process.env.SIMLI_API_KEY;
+  const agentId = process.env.SIMLI_AGENT_ID;
+  if (!apiKey || !agentId) {
+    return NextResponse.json({ error: "missing_env", hasApiKey: !!apiKey, hasAgentId: !!agentId }, { status: 500 });
   }
 
-  try {
-    // First get or create agent from face ID
-    console.log('Token route - Getting agent for face ID:', SIMLI_FACE_ID);
-    const { agentId } = await getOrCreateAgent(SIMLI_API_KEY, SIMLI_FACE_ID);
-    console.log('Token route - Got agent ID:', agentId);
+  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
 
-    // Allow current origin + common dev origins
-    const reqOrigin = req.headers.get("origin") ?? new URL(req.url).origin;
-    const originAllowList = Array.from(
-      new Set([
-        reqOrigin, 
-        "http://localhost:3000",
-        "https://sc-production-c3f8.up.railway.app",
-        "https://www.sasqchat.com",
-        "https://sasqchat.com"
-      ])
-    );
-
-    // Build payload with API key in body
-    const payload = {
-      simliAPIKey: SIMLI_API_KEY,
+  const r = await fetch("https://api.simli.ai/auto/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-simli-api-key": apiKey },
+    body: JSON.stringify({
       expiryStamp: Math.floor(Date.now() / 1000) + 1800,
-      originAllowList,
+      originAllowList: [origin, "http://localhost:3000"],
       createTranscript: true,
-    };
+    }),
+    cache: "no-store",
+  });
 
-    const r = await fetch("https://api.simli.ai/auto/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    });
+  const text = await r.text();
+  if (!r.ok) return NextResponse.json({ error: "simli_token_error", status: r.status, details: text }, { status: 500 });
 
-    const text = await r.text();
+  let token: string | undefined;
+  try { token = JSON.parse(text).token; } catch {}
+  if (!token) return NextResponse.json({ error: "bad_token_response", details: text }, { status: 500 });
 
-    if (!r.ok) {
-      // TEMP: bubble details to client so you can see exact reason
-      return NextResponse.json(
-        { error: "simli_token_error", status: r.status, details: text },
-        { status: 500 }
-      );
-    }
-
-    // Simli returns { session_token: "..." }
-    let parsedResponse: any;
-    let token: string | undefined;
-    try {
-      parsedResponse = JSON.parse(text);
-      token = parsedResponse?.session_token || parsedResponse?.token;
-    } catch (_) {
-      return NextResponse.json(
-        { error: "bad_token_response", details: text },
-        { status: 500 }
-      );
-    }
-    
-    if (!token) {
-      return NextResponse.json(
-        { error: "bad_token_response", details: text },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { token, agentid: agentId },
-      { headers: { "Cache-Control": "no-store" } }
-    );
-  } catch (err) {
-    console.error('Token route error - Full details:', {
-      error: err,
-      message: err instanceof Error ? err.message : 'Unknown error',
-      stack: err instanceof Error ? err.stack : undefined
-    });
-    return NextResponse.json(
-      { error: "agent_error", details: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ token, agentid: agentId }, { headers: { "Cache-Control": "no-store" } });
 }
