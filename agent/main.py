@@ -9,7 +9,7 @@ from livekit.agents import (
     WorkerType,
     cli,
 )
-from livekit.plugins import openai, simli
+from livekit.plugins import openai, simli, elevenlabs, silero, deepgram
 
 logger = logging.getLogger("simli-squatch-agent")
 logger.setLevel(logging.INFO)
@@ -33,7 +33,7 @@ def load_knowledge_base():
         return "I am Squatch. I live in the forests of the Pacific Northwest."
 
 async def entrypoint(ctx: JobContext):
-    logger.info("Starting Squatch Agent with Simli face...")
+    logger.info("Starting Squatch Agent with Simli face and ElevenLabs voice...")
     
     # Load persona and knowledge base
     persona = load_persona()
@@ -42,9 +42,21 @@ async def entrypoint(ctx: JobContext):
     # Combine persona and knowledge into instructions
     instructions = f"{persona}\n\nWhat you know:\n{knowledge}"
     
-    # Create agent session with OpenAI realtime
+    # Get ElevenLabs voice ID
+    elevenlabs_voice_id = os.getenv("ELEVENLABS_VOICE_ID")
+    if not elevenlabs_voice_id:
+        logger.error("Missing ELEVENLABS_VOICE_ID")
+        return
+    
+    # Create agent session with separate STT/LLM/TTS components
     session = AgentSession(
-        llm=openai.realtime.RealtimeModel(voice="alloy"),
+        vad=silero.VAD.load(),
+        stt=deepgram.STT(model="nova-3"),
+        llm=openai.LLM(model="gpt-4o"),
+        tts=elevenlabs.TTS(
+            voice=elevenlabs_voice_id,
+            model="eleven_turbo_v2_5",
+        ),
     )
     
     # Simli configuration
@@ -56,6 +68,7 @@ async def entrypoint(ctx: JobContext):
         return
     
     logger.info(f"Using Simli face ID: {simliFaceID}")
+    logger.info(f"Using ElevenLabs voice ID: {elevenlabs_voice_id}")
     
     # Create Simli avatar
     simli_avatar = simli.AvatarSession(
@@ -68,9 +81,17 @@ async def entrypoint(ctx: JobContext):
     # Start the avatar
     await simli_avatar.start(session, room=ctx.room)
     
-    # Start the agent session
+    # Start the agent session with our instructions
     await session.start(
-        agent=Agent(instructions=instructions),
+        agent=Agent(
+            instructions=instructions,
+            # Set context for the LLM
+            create_context=lambda: openai.ChatContext(
+                initial_messages=[
+                    openai.ChatMessage.system(instructions)
+                ]
+            ),
+        ),
         room=ctx.room,
     )
 

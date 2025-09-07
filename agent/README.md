@@ -1,6 +1,6 @@
 # Squatch LiveKit Agent
 
-This is the Python agent for the SquatchChat interactive Sasquatch using LiveKit and Simli face with OpenAI realtime model.
+This is the Python agent for the SquatchChat interactive Sasquatch using LiveKit, Simli face, and ElevenLabs voice.
 
 ## Required Environment Variables
 
@@ -19,6 +19,19 @@ You need to add these to Railway:
 2. Go to API keys section
 3. Create new secret key:
    - `OPENAI_API_KEY` - Your OpenAI API key
+
+### From Deepgram (https://console.deepgram.com):
+1. Sign up for a Deepgram account
+2. Go to API Keys section
+3. Create new API key:
+   - `DEEPGRAM_API_KEY` - Your Deepgram API key for speech-to-text
+
+### From ElevenLabs (https://elevenlabs.io):
+1. Sign in to your ElevenLabs account
+2. Go to Profile → API Key
+3. Get your API key and voice ID:
+   - `ELEVENLABS_API_KEY` - Your ElevenLabs API key
+   - `ELEVENLABS_VOICE_ID` - The voice ID you want to use for Squatch
 
 ### Already in Railway:
 - `SIMLI_API_KEY` - (already set)
@@ -46,6 +59,9 @@ LIVEKIT_URL=your-livekit-url
 LIVEKIT_API_KEY=your-api-key
 LIVEKIT_API_SECRET=your-api-secret
 OPENAI_API_KEY=your-openai-key
+DEEPGRAM_API_KEY=your-deepgram-key
+ELEVENLABS_API_KEY=your-elevenlabs-key
+ELEVENLABS_VOICE_ID=your-voice-id
 SIMLI_API_KEY=your-simli-key
 SIMLI_FACE_ID=your-face-id
 ```
@@ -82,8 +98,11 @@ livekit-cli cloud agent deploy
 3. Click "Start Chat" button
 4. The Squatch avatar should appear and respond to voice input
 
-## Notes
+## Architecture
 
-- Uses OpenAI's realtime model with "alloy" voice
-- Simli provides the visual avatar
-- Knowledge base and persona are loaded from kb/ folder
+- **Speech-to-Text**: Deepgram Nova-3 model for accurate voice recognition
+- **Language Model**: OpenAI GPT-4o for intelligent responses
+- **Text-to-Speech**: ElevenLabs with your chosen voice ID
+- **Visual Avatar**: Simli face rendering
+- **Voice Activity Detection**: Silero VAD for detecting speech
+- **Knowledge Base**: Custom persona and facts loaded from kb/ folder
