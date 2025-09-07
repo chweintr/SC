@@ -1,32 +1,56 @@
 # Squatch LiveKit Agent
 
-This is the Python agent for the SquatchChat interactive Sasquatch experience using LiveKit, Simli face, OpenAI, and ElevenLabs TTS.
+This is the Python agent for the SquatchChat interactive Sasquatch using LiveKit and Simli face with OpenAI realtime model.
 
-## Local Development
+## Required Environment Variables
 
-1. Create a virtual environment:
+You need to add these to Railway:
+
+### From LiveKit Cloud (https://cloud.livekit.io):
+1. Sign up for a LiveKit Cloud account
+2. Create a new project
+3. Go to Settings → Keys to get these:
+   - `LIVEKIT_URL` - Your LiveKit server URL (format: wss://your-project.livekit.cloud)
+   - `LIVEKIT_API_KEY` - Your API key
+   - `LIVEKIT_API_SECRET` - Your API secret
+
+### From OpenAI (https://platform.openai.com):
+1. Sign in to your OpenAI account
+2. Go to API keys section
+3. Create new secret key:
+   - `OPENAI_API_KEY` - Your OpenAI API key
+
+### Already in Railway:
+- `SIMLI_API_KEY` - (already set)
+- `SIMLI_FACE_ID` - (already set)
+
+## Local Testing
+
+1. Install Python 3.11 or newer
+
+2. Create virtual environment:
 ```bash
+cd agent
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set environment variables:
+4. Create .env file:
 ```bash
-export LIVEKIT_URL="your-livekit-url"
-export LIVEKIT_API_KEY="your-api-key"
-export LIVEKIT_API_SECRET="your-api-secret"
-export OPENAI_API_KEY="your-openai-key"
-export ELEVENLABS_API_KEY="your-elevenlabs-key"
-export ELEVENLABS_VOICE_ID="your-voice-id"
-export SIMLI_FACE_ID="your-simli-face-id"
+LIVEKIT_URL=your-livekit-url
+LIVEKIT_API_KEY=your-api-key
+LIVEKIT_API_SECRET=your-api-secret
+OPENAI_API_KEY=your-openai-key
+SIMLI_API_KEY=your-simli-key
+SIMLI_FACE_ID=your-face-id
 ```
 
-4. Run the agent:
+5. Run locally:
 ```bash
 python main.py dev
 ```
@@ -43,24 +67,23 @@ curl -sSL https://get.livekit.io/cli | bash
 livekit-cli cloud login
 ```
 
-3. Deploy the agent:
+3. From the agent directory, deploy:
 ```bash
-livekit-cli cloud agent deploy --project your-project-name
+cd agent
+livekit-cli cloud agent deploy
 ```
 
-## Required Environment Variables
+4. Follow the prompts to select your project
 
-Add these to your Railway deployment:
+## Testing the Agent
 
-- `LIVEKIT_URL` - Your LiveKit server URL (wss://your-project.livekit.cloud)
-- `LIVEKIT_API_KEY` - LiveKit API key
-- `LIVEKIT_API_SECRET` - LiveKit API secret
-- `OPENAI_API_KEY` - OpenAI API key for the LLM
-- `ELEVENLABS_API_KEY` - ElevenLabs API key for TTS
-- `ELEVENLABS_VOICE_ID` - ElevenLabs voice ID for Squatch
-- `SIMLI_FACE_ID` - Simli face ID (already set in Railway)
-- `SIMLI_API_KEY` - Simli API key (already set in Railway)
+1. Make sure all environment variables are added to Railway
+2. Visit your deployed SquatchChat site
+3. Click "Start Chat" button
+4. The Squatch avatar should appear and respond to voice input
 
-## Testing
+## Notes
 
-After deployment, visit your SquatchChat site and click the "Start Chat" button. The agent should connect automatically.
+- Uses OpenAI's realtime model with "alloy" voice
+- Simli provides the visual avatar
+- Knowledge base and persona are loaded from kb/ folder
