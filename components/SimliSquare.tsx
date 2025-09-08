@@ -24,9 +24,11 @@ export default function SimliSquare() {
       });
 
       // In case the avatar publishes before we subscribe:
-      for (const p of room.participants.values()) {
-        for (const pub of p.videoTracks.values()) {
-          if (pub.isSubscribed) attach(pub.videoTrack as VideoTrack);
+      for (const p of room.remoteParticipants.values()) {
+        for (const pub of p.videoTrackPublications.values()) {
+          if (pub.isSubscribed && pub.videoTrack) {
+            attach(pub.videoTrack);
+          }
         }
       }
     })();
