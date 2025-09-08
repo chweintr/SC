@@ -17,7 +17,13 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({
       expiryStamp: Math.floor(Date.now()/1000) + 1800,
       simliAPIKey: apiKey,                         // <- REQUIRED
-      originAllowList: [origin, "http://localhost:3000", "https://localhost:8080"],
+      originAllowList: [
+        origin, 
+        "http://localhost:3000", 
+        "https://localhost:8080",
+        "https://squatchat-production.up.railway.app",
+        "https://*.up.railway.app"
+      ],
       createTranscript: true
     }),
     cache: "no-store",
