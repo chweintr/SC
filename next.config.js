@@ -3,7 +3,7 @@ const CSP = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com;
   connect-src 'self' https://api.simli.ai https://*.simli.ai wss: https://*.daily.co;
-  img-src 'self' data: blob:;
+  img-src 'self' data: blob: https://www.simli.com https://app.simli.com;
   style-src 'self' 'unsafe-inline';
   media-src 'self' blob:;
   frame-src 'self' https://*.daily.co;
