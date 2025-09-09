@@ -18,11 +18,11 @@ export default function HeroScene() {
   // Calculate responsive widget size - bigger to fill screen
   const getWidgetSize = () => {
     if (screenSize.width < 640) { // Mobile
-      return { size: "75vw", top: "47%", left: "48%", radius: "20px" };
+      return { size: "75vw", top: "47%", left: "49%", radius: "20px" };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "45vw", top: "47%", left: "48%", radius: "25px" };
+      return { size: "45vw", top: "47%", left: "49%", radius: "25px" };
     } else { // Desktop
-      return { size: "30vw", top: "47%", left: "48%", radius: "30px" };
+      return { size: "30vw", top: "47%", left: "49%", radius: "30px" };
     }
   };
   
@@ -117,6 +117,20 @@ export default function HeroScene() {
       <img src="/public_ui_device_frame.png" alt=""
            className="fixed inset-0 z-10 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+      
+      {/* Button cutout - allows clicking through overlay */}
+      <div 
+        className="fixed z-30 pointer-events-auto"
+        style={{
+          left: widgetDimensions.left || "49%",
+          top: `calc(${widgetDimensions.top} + ${parseFloat(widgetDimensions.size) * 0.35}vw)`,
+          width: "15vw",
+          height: "5vw",
+          transform: "translateX(-50%)",
+          /* Debug: uncomment to see cutout area */
+          /* border: "2px dashed red", */
+        }}
+      />
 
       {/* Ambient forest sounds */}
       <audio 
