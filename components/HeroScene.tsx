@@ -98,8 +98,8 @@ export default function HeroScene() {
       <video className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
              autoPlay muted loop playsInline src="/video/hero_16x9.mp4" />
 
-      {/* middle: Simli widget - always visible */}
-      <div className="fixed z-20"
+      {/* middle: Simli widget - below overlay */}
+      <div className="fixed z-[5]"
            style={{ 
              left: widgetDimensions.left || "48%", 
              top: widgetDimensions.top, 
@@ -117,20 +117,6 @@ export default function HeroScene() {
       <img src="/public_ui_device_frame.png" alt=""
            className="fixed inset-0 z-10 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-      
-      {/* Button cutout - allows clicking through overlay */}
-      <div 
-        className="fixed z-30 pointer-events-auto"
-        style={{
-          left: widgetDimensions.left || "49%",
-          top: `calc(${widgetDimensions.top} + ${parseFloat(widgetDimensions.size) * 0.35}vw)`,
-          width: "15vw",
-          height: "5vw",
-          transform: "translateX(-50%)",
-          /* Debug: uncomment to see cutout area */
-          /* border: "2px dashed red", */
-        }}
-      />
 
       {/* Ambient forest sounds */}
       <audio 
