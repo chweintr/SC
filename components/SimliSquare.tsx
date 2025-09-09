@@ -166,28 +166,43 @@ export default function SimliSquare() {
             height: 100% !important;
           }
           
-          /* Hide the dotted face animation and widget background */
-          simli-widget img[src*="dottedface"],
+          /* Hide ALL Simli visuals except buttons */
+          simli-widget img,
+          simli-widget canvas,
+          simli-widget video:not(#idle-video),
+          simli-widget svg,
+          simli-widget .loading,
           simli-widget .dotted-face,
-          simli-widget [class*="loading"],
-          simli-widget > div:not(:has(button)) {
-            display: none !important;
+          simli-widget > div > div:not(:has(button)) {
+            opacity: 0 !important;
+            visibility: hidden !important;
           }
           
-          /* Make widget background transparent until active */
-          simli-widget {
+          /* Make widget completely transparent */
+          simli-widget,
+          simli-widget * {
             background: transparent !important;
+            background-color: transparent !important;
+            background-image: none !important;
           }
           
-          /* Only hide idle video when Simli video is actually playing */
-          simli-widget:has(video[src]) ~ #idle-video {
+          /* Only show Simli video when stream is active */
+          simli-widget video[srcObject] {
+            opacity: 1 !important;
+            visibility: visible !important;
+          }
+          
+          /* Hide idle video when Simli stream starts */
+          body:has(simli-widget video[srcObject]) #idle-video {
             display: none !important;
           }
           
-          /* Position the widget button over the video */
-          simli-widget {
-            position: absolute !important;
-            z-index: 10 !important;
+          /* Ensure buttons stay visible */
+          simli-widget button {
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: relative !important;
+            z-index: 20 !important;
           }
         `;
         document.head.appendChild(style);
@@ -199,19 +214,21 @@ export default function SimliSquare() {
   }, []);
 
   return (
-    <div ref={hostRef} className="h-full w-full relative">
-      {/* Custom idle video as placeholder */}
+    <div className="h-full w-full relative">
+      {/* Custom idle video behind everything */}
       <video 
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover z-0"
         autoPlay 
         loop 
         muted 
         playsInline
         id="idle-video"
-        style={{ display: 'block' }}
       >
         <source src="/squatch-idle.mp4" type="video/mp4" />
       </video>
+      
+      {/* Widget container on top */}
+      <div ref={hostRef} className="absolute inset-0 z-10" />
     </div>
   );
 }
