@@ -18,11 +18,11 @@ export default function HeroScene() {
   // Calculate responsive widget size - bigger to fill screen
   const getWidgetSize = () => {
     if (screenSize.width < 640) { // Mobile
-      return { size: "75vw", top: "45%", radius: "20px" };
+      return { size: "75vw", top: "47%", left: "48%", radius: "20px" };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "45vw", top: "45%", radius: "25px" };
+      return { size: "45vw", top: "47%", left: "48%", radius: "25px" };
     } else { // Desktop
-      return { size: "30vw", top: "45%", radius: "30px" };
+      return { size: "30vw", top: "47%", left: "48%", radius: "30px" };
     }
   };
   
@@ -34,7 +34,7 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        audio.volume = 0.05; // Very quiet background volume
+        audio.volume = 0.02; // Extra quiet background volume (2%)
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
@@ -101,7 +101,7 @@ export default function HeroScene() {
       {/* middle: Simli widget - always visible */}
       <div className="fixed -z-10"
            style={{ 
-             left: "50%", 
+             left: widgetDimensions.left || "48%", 
              top: widgetDimensions.top, 
              width: widgetDimensions.size, 
              height: widgetDimensions.size,
