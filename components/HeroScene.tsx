@@ -113,7 +113,7 @@ export default function HeroScene() {
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
       {/* Ambient forest sounds */}
-      <audio id="forest-ambience" loop>
+      <audio id="forest-ambience" loop preload="auto" controls style={{ position: 'fixed', bottom: '10px', right: '10px', zIndex: 100, opacity: 0.3 }}>
         <source src="/audio/enchanted-forest.wav" type="audio/wav" />
         Your browser does not support the audio element.
       </audio>
