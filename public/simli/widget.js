@@ -658,6 +658,9 @@ loadScript("https://unpkg.com/@daily-co/daily-js")
         dottedFaceGift.loop = true;
         dottedFaceGift.muted = true;
         dottedFaceGift.playsInline = true;
+        dottedFaceGift.style.width = "100%";
+        dottedFaceGift.style.height = "100%";
+        dottedFaceGift.style.objectFit = "cover";
         dottedFaceGift.src =
           this.getAttribute("customimage") ||
           "/squatch-idle.mp4";

@@ -15,14 +15,14 @@ export default function HeroScene() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Calculate responsive widget size
+  // Calculate responsive widget size - bigger to fill screen
   const getWidgetSize = () => {
     if (screenSize.width < 640) { // Mobile
-      return { size: "60vw", top: "45%", radius: "15px" };
+      return { size: "75vw", top: "45%", radius: "20px" };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "35vw", top: "45%", radius: "18px" };
+      return { size: "45vw", top: "45%", radius: "25px" };
     } else { // Desktop
-      return { size: "23vw", top: "45%", radius: "20px" };
+      return { size: "30vw", top: "45%", radius: "30px" };
     }
   };
   
@@ -34,7 +34,7 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        audio.volume = 0.15; // Low volume
+        audio.volume = 0.05; // Very quiet background volume
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
