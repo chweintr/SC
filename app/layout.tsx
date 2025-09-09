@@ -14,8 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SasqChat",
+  title: "SQUATCHAT",
   description: "Interactive Sasquatch Experience",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SQUATCHAT",
+  },
 };
 
 export default function RootLayout({

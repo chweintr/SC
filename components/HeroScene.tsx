@@ -3,15 +3,30 @@ import * as React from "react";
 import SimliSquare from "./SimliSquare";
 
 export default function HeroScene() {
-  // Adjust to better fit the device screen area
-  // Making it slightly larger to hide borders but stay within screen
-  const SCREEN_AREA = { 
-    left: "50%", 
-    top: "52%",  
-    width: "25vw",  // Increased to hide borders better
-    height: "25vw", 
-    radius: "20px" 
+  // Responsive sizing based on viewport
+  const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
+  
+  React.useEffect(() => {
+    const updateSize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  // Calculate responsive widget size
+  const getWidgetSize = () => {
+    if (screenSize.width < 640) { // Mobile
+      return { size: "65vw", top: "50%", radius: "15px" };
+    } else if (screenSize.width < 1024) { // Tablet
+      return { size: "40vw", top: "52%", radius: "18px" };
+    } else { // Desktop
+      return { size: "25vw", top: "52%", radius: "20px" };
+    }
   };
+  
+  const widgetDimensions = getWidgetSize();
 
   // Start ambient sounds when component mounts
   React.useEffect(() => {
@@ -43,12 +58,12 @@ export default function HeroScene() {
       {/* middle: Simli widget - always visible */}
       <div className="fixed -z-10"
            style={{ 
-             left: SCREEN_AREA.left, 
-             top: SCREEN_AREA.top, 
-             width: SCREEN_AREA.width, 
-             height: SCREEN_AREA.height,
+             left: "50%", 
+             top: widgetDimensions.top, 
+             width: widgetDimensions.size, 
+             height: widgetDimensions.size,
              transform: "translate(-50%,-50%)", 
-             borderRadius: SCREEN_AREA.radius,
+             borderRadius: widgetDimensions.radius,
              background: "#000",  // Black background to hide any gaps
              overflow: "hidden"   // Clip any content that exceeds bounds
            }}>
