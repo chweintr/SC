@@ -49,13 +49,15 @@ export default function SimliSquare() {
         console.error("SimliWidget error:", e);
       });
       
-      // Hide idle video when widget becomes active
+      // Hide idle video only when Simli video stream starts
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'attributes' || mutation.type === 'childList') {
             const idleVideo = document.getElementById('idle-video') as HTMLVideoElement;
-            const hasActiveVideo = el.querySelector('video:not(#idle-video)');
-            if (idleVideo && hasActiveVideo) {
+            // Check for actual Simli video stream (not dotted face)
+            const simliVideo = el.querySelector('video[srcObject]') as HTMLVideoElement;
+            if (idleVideo && simliVideo && simliVideo.srcObject) {
+              console.log("Simli stream detected, hiding idle video");
               idleVideo.style.display = 'none';
             }
           }
@@ -70,7 +72,12 @@ export default function SimliSquare() {
       
       // Clear the loading message before adding widget
       if (hostRef.current) {
+        // Keep the video element
+        const idleVideo = hostRef.current.querySelector('#idle-video');
         hostRef.current.innerHTML = '';
+        if (idleVideo) {
+          hostRef.current.appendChild(idleVideo);
+        }
         
         // Add custom styles
         const style = document.createElement('style');
@@ -159,17 +166,28 @@ export default function SimliSquare() {
             height: 100% !important;
           }
           
-          /* Hide the dotted face animation */
+          /* Hide the dotted face animation and widget background */
           simli-widget img[src*="dottedface"],
           simli-widget .dotted-face,
-          simli-widget [class*="loading"] {
+          simli-widget [class*="loading"],
+          simli-widget > div:not(:has(button)) {
             display: none !important;
           }
           
-          /* Hide idle video when widget is active */
-          simli-widget.active ~ #idle-video,
-          simli-widget[data-state="active"] ~ #idle-video {
+          /* Make widget background transparent until active */
+          simli-widget {
+            background: transparent !important;
+          }
+          
+          /* Only hide idle video when Simli video is actually playing */
+          simli-widget:has(video[src]) ~ #idle-video {
             display: none !important;
+          }
+          
+          /* Position the widget button over the video */
+          simli-widget {
+            position: absolute !important;
+            z-index: 10 !important;
           }
         `;
         document.head.appendChild(style);
