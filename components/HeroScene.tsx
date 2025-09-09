@@ -99,7 +99,7 @@ export default function HeroScene() {
              autoPlay muted loop playsInline src="/video/hero_16x9.mp4" />
 
       {/* middle: Simli widget - always visible */}
-      <div className="fixed -z-10"
+      <div className="fixed z-20"
            style={{ 
              left: widgetDimensions.left || "48%", 
              top: widgetDimensions.top, 

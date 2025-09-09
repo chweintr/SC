@@ -70,6 +70,31 @@ export default function SimliSquare() {
         subtree: true 
       });
       
+      // Change button text from Start to Summon
+      const changeButtonText = () => {
+        const buttons = el.querySelectorAll('button');
+        buttons.forEach(button => {
+          if (button.textContent?.includes('Start')) {
+            button.textContent = 'Summon';
+          }
+          if (button.textContent?.includes('Stop') || button.textContent?.includes('Close')) {
+            button.textContent = 'Dismiss';
+          }
+        });
+      };
+      
+      // Watch for button creation
+      const buttonObserver = new MutationObserver(() => {
+        changeButtonText();
+      });
+      
+      buttonObserver.observe(el, { childList: true, subtree: true });
+      
+      // Also try immediately and after delays
+      setTimeout(changeButtonText, 100);
+      setTimeout(changeButtonText, 500);
+      setTimeout(changeButtonText, 1000);
+      
       // Clear the loading message before adding widget
       if (hostRef.current) {
         // Keep the video element
@@ -86,7 +111,7 @@ export default function SimliSquare() {
           simli-widget button:first-of-type,
           simli-widget button[aria-label*="Start"],
           simli-widget button:contains("Start") {
-            background: #10b981 !important; /* Green for Summon */
+            background: #ec4899 !important; /* Pink for Summon */
             color: white !important;
             border-radius: 12px !important;
             padding: 16px 32px !important;
@@ -95,6 +120,8 @@ export default function SimliSquare() {
             transition: all 0.2s !important;
             border: none !important;
             cursor: pointer !important;
+            position: relative !important;
+            z-index: 1000 !important;
           }
           
           /* Close/Stop button */
@@ -106,7 +133,7 @@ export default function SimliSquare() {
           }
           
           simli-widget button:first-of-type:hover {
-            background: #059669 !important;
+            background: #db2777 !important; /* Darker pink on hover */
             transform: scale(1.05) !important;
           }
           
