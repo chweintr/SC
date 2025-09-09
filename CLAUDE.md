@@ -1,56 +1,96 @@
-# Simli API Integration Documentation
+# Simli Widget Integration Documentation
 
 ## Overview
-This project uses Simli's JavaScript SDK with server-side authentication to keep API keys secure. The backend creates sessions and fetches ICE servers, while the frontend uses session tokens.
+This project uses the Simli widget with server-side authentication to create an interactive avatar experience. We use the widget approach with avatar IDs from the Simli dashboard.
 
-## Authentication Pattern
-We use the **server-side authentication** pattern (requires simli-client 1.2.7+):
-- Backend keeps the API key secure
-- Backend creates sessions via `/startAudioToVideoSession`
-- Backend fetches ICE servers via `/getIceServer` (singular, not plural!)
-- Frontend receives session_token and iceConfig
-- Frontend initializes with session_token instead of apiKey
+## Current Implementation
+
+### Widget Approach
+We use the Simli widget (`<simli-widget>`) which handles:
+- WebRTC connections
+- Audio/video streaming
+- User interface (Start/Stop buttons)
+- Session management
+
+### Authentication Pattern
+1. Backend creates E2E session tokens via `/createE2ESessionToken`
+2. Frontend loads the widget with the token
+3. Widget handles all WebRTC and streaming logic
 
 ## API Endpoints
 
-### Simli API Endpoints:
-- `POST https://api.simli.ai/startAudioToVideoSession` - Creates a session
-- `POST https://api.simli.ai/getIceServer` - Gets ICE servers (NOT getIceServers)
+### Backend Route: `/api/simli/token`
+```typescript
+// Creates E2E session token for the widget
+POST https://api.simli.ai/createE2ESessionToken
+Body: {
+  simliAPIKey: process.env.SIMLI_API_KEY,
+  avatarID: process.env.SIMLI_AVATAR_ID
+}
+```
 
 ### Required Environment Variables:
 - `SIMLI_API_KEY` - Your Simli API key
-- `SIMLI_FACE_ID` - The face ID to use
+- `SIMLI_AVATAR_ID` - Avatar ID from Simli dashboard (e.g., c0736bf4-ab63-4795-8983-7a9377c93ecb)
 
-## Frontend Usage
+## Frontend Implementation
+
+### Loading the Widget
 ```javascript
-// Initialize with session_token (not apiKey)
-const simliConfig = {
-  apiKey: '',              // Empty when using session_token
-  faceID: '',              // Empty when using session_token
-  session_token: sessionToken,  // From backend
-  handleSilence: true,
-  videoRef: videoRef.current,
-  audioRef: audioRef.current,
-  maxSessionLength: 600,
-  maxIdleTime: 60,
-  enableConsoleLogs: true,
-};
+// 1. Download widget script locally
+// Save https://app.simli.com/simli-widget/index.js to public/simli/widget.js
 
-simliClient.Initialize(simliConfig);
-simliClient.start(iceServers); // Pass ICE servers from backend
+// 2. Load in layout.tsx
+<Script src="/simli/widget.js" strategy="afterInteractive" />
+
+// 3. Create widget element
+const el = document.createElement("simli-widget");
+el.token = token;
+el.avatarid = avatarid;
+el.avatarId = avatarid;  // Try multiple property names
+el.agentId = avatarid;    // For compatibility
+el.overlay = false;
 ```
 
-## Backend Flow
-1. Call `/startAudioToVideoSession` with apiKey and faceId
-2. Get session_token from response
-3. Call `/getIceServer` with apiKey
-4. Return both session_token and iceServers to frontend
+### Widget Styling
+- Green "Summon" button: `#10b981`
+- Pink "Dismiss" button: `#ec4899`
+- Black background to hide borders
+- Custom CSS to override button text
 
-## Common Issues
-- "Invalid API key" - Check environment variable names (no trailing colons!)
-- 404 on ICE servers - Use `/getIceServer` (singular), not `/getIceServers`
-- Session fails - Ensure both SIMLI_API_KEY and SIMLI_FACE_ID are set
+### Responsive Positioning
+```css
+position: fixed;
+left: 50%;
+top: 52%;
+width: 25vw;
+height: 25vw;
+transform: translate(-50%, -50%);
+```
+
+## Common Issues & Solutions
+
+### "Invalid API key"
+- Verify `SIMLI_API_KEY` in Railway matches Simli dashboard
+- No extra spaces or quotes in environment variable
+
+### "Agent not found" 
+- Widget expects properties: `avatarid`, `avatarId`, `agentId`
+- Set all variants to ensure compatibility
+
+### CSP Errors
+Required CSP headers:
+```
+script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com;
+connect-src 'self' https://api.simli.ai https://*.simli.ai wss: https://*.daily.co;
+img-src 'self' data: blob: https://www.simli.com https://app.simli.com;
+frame-src 'self' https://*.daily.co;
+```
+
+## Audio Features
+- Background video: `/video/hero_16x9.mp4`
+- Ambient sounds: `/audio/enchanted-forest.mp3` (volume: 0.2)
 
 ## References
-- [Simli JavaScript SDK Docs](https://docs.simli.com/simli-sdks/javascript-sdk)
-- [Simli JavaScript Auth Docs](https://docs.simli.com/simli-sdks/javascript-auth)
+- Get Avatar ID from: https://app.simli.com/avatars/[avatar-id]
+- Simli API key from: https://app.simli.com/apikey

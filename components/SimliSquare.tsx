@@ -57,8 +57,10 @@ export default function SimliSquare() {
         const style = document.createElement('style');
         style.textContent = `
           /* Target the Simli widget start button */
-          simli-widget button {
-            background: #10b981 !important; /* Emerald/viridian color */
+          simli-widget button:first-of-type,
+          simli-widget button[aria-label*="Start"],
+          simli-widget button:contains("Start") {
+            background: #10b981 !important; /* Green for Summon */
             color: white !important;
             border-radius: 12px !important;
             padding: 16px 32px !important;
@@ -69,9 +71,46 @@ export default function SimliSquare() {
             cursor: pointer !important;
           }
           
-          simli-widget button:hover {
+          /* Close/Stop button */
+          simli-widget button:last-of-type,
+          simli-widget button[aria-label*="Close"],
+          simli-widget button[aria-label*="Stop"] {
+            background: #ec4899 !important; /* Pink for Dismiss */
+            color: white !important;
+          }
+          
+          simli-widget button:first-of-type:hover {
             background: #059669 !important;
             transform: scale(1.05) !important;
+          }
+          
+          simli-widget button:last-of-type:hover {
+            background: #db2777 !important;
+            transform: scale(1.05) !important;
+          }
+          
+          /* Override button text with CSS */
+          simli-widget button[aria-label*="Start"]::after {
+            content: "Summon" !important;
+          }
+          simli-widget button[aria-label*="Start"] {
+            font-size: 0 !important;
+          }
+          simli-widget button[aria-label*="Start"]::after {
+            font-size: 18px !important;
+          }
+          
+          simli-widget button[aria-label*="Close"]::after,
+          simli-widget button[aria-label*="Stop"]::after {
+            content: "Dismiss" !important;
+          }
+          simli-widget button[aria-label*="Close"],
+          simli-widget button[aria-label*="Stop"] {
+            font-size: 0 !important;
+          }
+          simli-widget button[aria-label*="Close"]::after,
+          simli-widget button[aria-label*="Stop"]::after {
+            font-size: 18px !important;
           }
           
           /* Center the widget content */
@@ -81,6 +120,7 @@ export default function SimliSquare() {
             justify-content: center !important;
             height: 100% !important;
             width: 100% !important;
+            background: #000 !important; /* Black background to hide borders */
           }
           
           /* Style the widget container */
@@ -90,6 +130,14 @@ export default function SimliSquare() {
             justify-content: center !important;
             height: 100% !important;
             width: 100% !important;
+          }
+          
+          /* Hide the dotted face borders */
+          simli-widget video,
+          simli-widget canvas {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
           }
         `;
         document.head.appendChild(style);
