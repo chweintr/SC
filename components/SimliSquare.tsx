@@ -14,12 +14,18 @@ export default function SimliSquare() {
       }
       
       const { token, avatarid } = await r.json();
-      console.log("SimliSquare: Got token and avatar ID:", { avatarid });
+      console.log("SimliSquare: Got token and avatar ID:", avatarid);
+      console.log("SimliSquare: Full response:", { token: token?.substring(0, 20) + '...', avatarid });
 
       const el = document.createElement("simli-widget");
       (el as any).token = token;
       (el as any).avatarid = avatarid;   // <- avatar id, not face/agent
       (el as any).overlay = false;
+      
+      // Also try setting as attributes
+      el.setAttribute("token", token);
+      el.setAttribute("avatarid", avatarid);
+      el.setAttribute("overlay", "false");
       el.setAttribute("style", "display:block;width:100%;height:100%;background:transparent");
       
       // Add event listeners to debug
