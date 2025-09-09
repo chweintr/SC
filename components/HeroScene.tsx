@@ -62,8 +62,7 @@ export default function HeroScene() {
 
       {/* Ambient forest sounds */}
       <audio id="forest-ambience" loop>
-        <source src="/audio/enchanted-forest.mp3" type="audio/mpeg" />
-        <source src="/audio/enchanted-forest.ogg" type="audio/ogg" />
+        <source src="/audio/enchanted-forest.wav" type="audio/wav" />
         Your browser does not support the audio element.
       </audio>
     </>
