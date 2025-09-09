@@ -3,10 +3,15 @@ import * as React from "react";
 import SimliSquare from "./SimliSquare";
 
 export default function HeroScene() {
-  const [showAvatar, setShowAvatar] = React.useState(false);
-
-  // adjust to align with your overlay's transparent window
-  const HOLE = { left:"50%", top:"55%", size:"28vw", radius:"20px" };
+  // Adjust to better fit the device screen area
+  // Making it slightly smaller and positioned to fit within the visible screen
+  const SCREEN_AREA = { 
+    left: "50%", 
+    top: "52%",  // Moved up slightly
+    width: "22vw",  // Reduced from 28vw to fit better
+    height: "22vw", 
+    radius: "15px" 
+  };
 
   return (
     <>
@@ -14,25 +19,18 @@ export default function HeroScene() {
       <video className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
              autoPlay muted loop playsInline src="/video/hero_16x9.mp4" />
 
-      {/* middle: square Simli agent */}
-      <div className="fixed -z-10 overflow-hidden"
-           style={{ left:HOLE.left, top:HOLE.top, width:HOLE.size, height:HOLE.size,
-                    transform:"translate(-50%,-50%)", borderRadius:HOLE.radius, background:"#000" }}>
-        {showAvatar ? (
-          <SimliSquare />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-white/80">Click "Summon"</div>
-        )}
-      </div>
-
-      {/* summon */}
-      <div className="fixed top-4 left-0 right-0 z-10 flex justify-center">
-        <button 
-          onClick={() => setShowAvatar(!showAvatar)} 
-          className="rounded-xl px-4 py-2 bg-white/90 text-black shadow"
-        >
-          {showAvatar ? "Hide" : "Summon"}
-        </button>
+      {/* middle: Simli widget - always visible */}
+      <div className="fixed -z-10"
+           style={{ 
+             left: SCREEN_AREA.left, 
+             top: SCREEN_AREA.top, 
+             width: SCREEN_AREA.width, 
+             height: SCREEN_AREA.height,
+             transform: "translate(-50%,-50%)", 
+             borderRadius: SCREEN_AREA.radius,
+             background: "transparent"
+           }}>
+        <SimliSquare />
       </div>
 
       {/* top: full-page PNG overlay with transparent window */}
