@@ -27,14 +27,20 @@ export default function SimliSquare() {
         tokenLength: token?.length
       });
       
-      // Set properties
+      // Try different property names the widget might expect
       (el as any).token = token;
       (el as any).avatarid = avatarid;
+      (el as any).avatarId = avatarid;  // Try camelCase
+      (el as any).agentId = avatarid;   // Try agentId
+      (el as any).agentid = avatarid;   // Try lowercase
       (el as any).overlay = false;
       
       // Also set as attributes for redundancy
       el.setAttribute("token", token);
       el.setAttribute("avatarid", avatarid);
+      el.setAttribute("avatarId", avatarid);
+      el.setAttribute("agentId", avatarid);
+      el.setAttribute("agentid", avatarid);
       el.setAttribute("overlay", "false");
       el.setAttribute("style", "display:block;width:100%;height:100%;background:transparent");
       

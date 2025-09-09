@@ -32,7 +32,10 @@ export async function GET(req: NextRequest) {
   
   return NextResponse.json({ 
     token: data.token || data.session_token || data.sessionToken,
-    avatarid: avatarId 
+    avatarid: avatarId,
+    avatarId: avatarId,  // Also include camelCase
+    agentId: avatarId,   // And agentId variants
+    agentid: avatarId
   }, { 
     headers: { "Cache-Control": "no-store" } 
   });
