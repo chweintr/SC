@@ -166,14 +166,18 @@ export default function SimliSquare() {
             height: 100% !important;
           }
           
-          /* Hide ALL Simli visuals except buttons */
-          simli-widget img,
-          simli-widget canvas,
-          simli-widget video:not(#idle-video),
-          simli-widget svg,
-          simli-widget .loading,
-          simli-widget .dotted-face,
-          simli-widget > div > div:not(:has(button)) {
+          /* Style the dotted face video */
+          simli-widget video.dotted-face {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+          }
+          
+          /* Hide other loading elements */
+          simli-widget .loading:not(.dotted-face),
+          simli-widget svg {
             opacity: 0 !important;
             visibility: hidden !important;
           }
@@ -213,22 +217,5 @@ export default function SimliSquare() {
     })();
   }, []);
 
-  return (
-    <div className="h-full w-full relative">
-      {/* Custom idle video behind everything */}
-      <video 
-        className="absolute inset-0 w-full h-full object-cover z-0"
-        autoPlay 
-        loop 
-        muted 
-        playsInline
-        id="idle-video"
-      >
-        <source src="/squatch-idle.mp4" type="video/mp4" />
-      </video>
-      
-      {/* Widget container on top */}
-      <div ref={hostRef} className="absolute inset-0 z-10" />
-    </div>
-  );
+  return <div ref={hostRef} className="h-full w-full" />;
 }

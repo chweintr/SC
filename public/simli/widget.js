@@ -652,11 +652,15 @@ loadScript("https://unpkg.com/@daily-co/daily-js")
           "https://www.simli.com/_next/static/media/SimliLogoV2.c4705897.svg";
         simliLogo.alt = "Simli";
 
-        const dottedFaceGift = document.createElement("img");
+        const dottedFaceGift = document.createElement("video");
         dottedFaceGift.className = "dotted-face";
+        dottedFaceGift.autoplay = true;
+        dottedFaceGift.loop = true;
+        dottedFaceGift.muted = true;
+        dottedFaceGift.playsInline = true;
         dottedFaceGift.src =
           this.getAttribute("customimage") ||
-          "https://app.simli.com/simli-widget/dottedface.gif";
+          "/squatch-idle.mp4";
 
         this.video = document.createElement("video");
         this.video.className = "simli-video";

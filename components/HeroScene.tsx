@@ -41,10 +41,16 @@ export default function HeroScene() {
             console.log("Ambient audio started");
           }).catch(e => {
             console.log("Audio autoplay prevented, will play on user interaction");
-            // Try again on first user click
-            document.addEventListener('click', () => {
-              audio.play().catch(() => {});
-            }, { once: true });
+            // Try on any user interaction
+            const tryPlay = () => {
+              audio.play().then(() => {
+                console.log("Audio started after interaction");
+              }).catch(() => {});
+            };
+            
+            document.addEventListener('click', tryPlay, { once: true });
+            document.addEventListener('touchstart', tryPlay, { once: true });
+            document.addEventListener('keydown', tryPlay, { once: true });
           });
         };
         
@@ -113,7 +119,14 @@ export default function HeroScene() {
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
       {/* Ambient forest sounds */}
-      <audio id="forest-ambience" loop preload="auto" controls style={{ position: 'fixed', bottom: '10px', right: '10px', zIndex: 100, opacity: 0.3 }}>
+      <audio 
+        id="forest-ambience" 
+        loop 
+        autoPlay
+        preload="auto" 
+        controls 
+        style={{ position: 'fixed', bottom: '10px', right: '10px', zIndex: 100, opacity: 0.3, width: '200px' }}
+      >
         <source src="/audio/enchanted-forest.wav" type="audio/wav" />
         Your browser does not support the audio element.
       </audio>
