@@ -18,11 +18,21 @@ export default function SimliSquare() {
       console.log("SimliSquare: Full response:", { token: token?.substring(0, 20) + '...', avatarid });
 
       const el = document.createElement("simli-widget");
+      
+      // Log what we're setting
+      console.log("Setting widget properties:", {
+        token: token?.substring(0, 20) + '...',
+        avatarid: avatarid,
+        tokenType: typeof token,
+        tokenLength: token?.length
+      });
+      
+      // Set properties
       (el as any).token = token;
-      (el as any).avatarid = avatarid;   // <- avatar id, not face/agent
+      (el as any).avatarid = avatarid;
       (el as any).overlay = false;
       
-      // Also try setting as attributes
+      // Also set as attributes for redundancy
       el.setAttribute("token", token);
       el.setAttribute("avatarid", avatarid);
       el.setAttribute("overlay", "false");

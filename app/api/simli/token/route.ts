@@ -11,20 +11,13 @@ export async function GET(req: NextRequest) {
   // Must be an Origin value (scheme + host [+ port])
   const origin = req.headers.get("origin") ?? new URL(req.url).origin;
 
-  const upstream = await fetch("https://api.simli.ai/auto/token", {
+  // First try the E2E session token endpoint
+  const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      expiryStamp: Math.floor(Date.now()/1000) + 1800,
-      simliAPIKey: apiKey,                         // <- REQUIRED
-      originAllowList: [
-        origin, 
-        "http://localhost:3000", 
-        "https://localhost:8080",
-        "https://squatchat-production.up.railway.app",
-        "https://*.up.railway.app"
-      ],
-      createTranscript: true
+      simliAPIKey: apiKey,
+      avatarID: avatarId
     }),
     cache: "no-store",
   });
@@ -34,6 +27,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "simli_token_error", status: upstream.status, originSent: origin, details: text }, { status: 500 });
   }
 
-  const { token } = JSON.parse(text);
-  return NextResponse.json({ token, avatarid: avatarId }, { headers: { "Cache-Control": "no-store" } });
+  const data = JSON.parse(text);
+  console.log("Token response from Simli:", data);
+  
+  return NextResponse.json({ 
+    token: data.token || data.session_token || data.sessionToken,
+    avatarid: avatarId 
+  }, { 
+    headers: { "Cache-Control": "no-store" } 
+  });
 }
