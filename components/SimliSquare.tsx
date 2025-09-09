@@ -49,6 +49,25 @@ export default function SimliSquare() {
         console.error("SimliWidget error:", e);
       });
       
+      // Hide idle video when widget becomes active
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' || mutation.type === 'childList') {
+            const idleVideo = document.getElementById('idle-video') as HTMLVideoElement;
+            const hasActiveVideo = el.querySelector('video:not(#idle-video)');
+            if (idleVideo && hasActiveVideo) {
+              idleVideo.style.display = 'none';
+            }
+          }
+        });
+      });
+      
+      observer.observe(el, { 
+        attributes: true, 
+        childList: true, 
+        subtree: true 
+      });
+      
       // Clear the loading message before adding widget
       if (hostRef.current) {
         hostRef.current.innerHTML = '';
@@ -139,6 +158,19 @@ export default function SimliSquare() {
             width: 100% !important;
             height: 100% !important;
           }
+          
+          /* Hide the dotted face animation */
+          simli-widget img[src*="dottedface"],
+          simli-widget .dotted-face,
+          simli-widget [class*="loading"] {
+            display: none !important;
+          }
+          
+          /* Hide idle video when widget is active */
+          simli-widget.active ~ #idle-video,
+          simli-widget[data-state="active"] ~ #idle-video {
+            display: none !important;
+          }
         `;
         document.head.appendChild(style);
         
@@ -148,5 +180,20 @@ export default function SimliSquare() {
     })();
   }, []);
 
-  return <div ref={hostRef} className="h-full w-full" />;
+  return (
+    <div ref={hostRef} className="h-full w-full relative">
+      {/* Custom idle video as placeholder */}
+      <video 
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay 
+        loop 
+        muted 
+        playsInline
+        id="idle-video"
+        style={{ display: 'block' }}
+      >
+        <source src="/squatch-idle.mp4" type="video/mp4" />
+      </video>
+    </div>
+  );
 }

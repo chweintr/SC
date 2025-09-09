@@ -18,11 +18,11 @@ export default function HeroScene() {
   // Calculate responsive widget size
   const getWidgetSize = () => {
     if (screenSize.width < 640) { // Mobile
-      return { size: "60vw", top: "48%", radius: "15px" };
+      return { size: "60vw", top: "45%", radius: "15px" };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "35vw", top: "48%", radius: "18px" };
+      return { size: "35vw", top: "45%", radius: "18px" };
     } else { // Desktop
-      return { size: "23vw", top: "48%", radius: "20px" };
+      return { size: "23vw", top: "45%", radius: "20px" };
     }
   };
   
