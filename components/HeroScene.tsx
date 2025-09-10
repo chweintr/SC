@@ -23,16 +23,47 @@ export default function HeroScene() {
 
   // Calculate responsive widget size - bigger to fill screen
   const getWidgetSize = () => {
+    // Visual reference: The golden frame window starts around 20% from top
+    // and the window height is about 35% of screen height
     if (screenSize.width < 640) { // Mobile
-      return { size: "80vw", top: "50%", left: "50%", radius: "15px" };
+      return { 
+        size: "80vw", 
+        top: "37%",  // Moved up significantly from 50%
+        left: "50%", 
+        radius: "15px" 
+      };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "41vw", top: "48.5%", left: "50%", radius: "25px" };
+      return { 
+        size: "41vw", 
+        top: "35%",  // Moved up from 48.5%
+        left: "50%", 
+        radius: "25px" 
+      };
     } else { // Desktop
-      return { size: "27vw", top: "48.5%", left: "50%", radius: "30px" };
+      return { 
+        size: "27vw", 
+        top: "35%",  // Moved up from 48.5%
+        left: "50%", 
+        radius: "30px" 
+      };
     }
   };
   
   const widgetDimensions = getWidgetSize();
+  
+  // Override with URL params for quick testing: ?top=30&left=50&size=27
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const top = params.get('top');
+      const left = params.get('left');
+      const size = params.get('size');
+      
+      if (top) widgetDimensions.top = `${top}%`;
+      if (left) widgetDimensions.left = `${left}%`;
+      if (size) widgetDimensions.size = `${size}vw`;
+    }
+  }, []);
 
   // Start background video if autoplay fails
   React.useEffect(() => {
