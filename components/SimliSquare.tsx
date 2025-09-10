@@ -81,15 +81,23 @@ export default function SimliSquare() {
         subtree: true 
       });
       
-      // Change button text from Start to Start and Stop/Close to End
+      // Change button text - responsive based on screen size
       const changeButtonText = () => {
+        const isMobile = window.innerWidth < 768;
         const buttons = el.querySelectorAll('button');
         buttons.forEach(button => {
-          if (button.textContent?.includes('Start')) {
-            button.textContent = 'Start';
-          }
-          if (button.textContent?.includes('Stop') || button.textContent?.includes('Close')) {
-            button.textContent = 'End';
+          if (isMobile) {
+            // No text on mobile - just the button
+            button.textContent = '';
+          } else {
+            // Desktop text
+            if (button.textContent?.includes('Start')) {
+              button.textContent = 'Start';
+            } else if (button.textContent?.includes('Connecting')) {
+              button.textContent = '...';  // Ellipsis for connecting
+            } else if (button.textContent?.includes('Stop') || button.textContent?.includes('Close')) {
+              button.textContent = 'End';
+            }
           }
         });
       };
@@ -165,28 +173,52 @@ export default function SimliSquare() {
             transform: scale(1.05) !important;
           }
           
-          /* Override button text with CSS */
-          simli-widget button[aria-label*="Start"]::after {
-            content: "Start" !important;
-          }
-          simli-widget button[aria-label*="Start"] {
-            font-size: 0 !important;
-          }
-          simli-widget button[aria-label*="Start"]::after {
-            font-size: 18px !important;
+          /* Desktop: Override button text with CSS */
+          @media (min-width: 768px) {
+            simli-widget button[aria-label*="Start"]::after {
+              content: "Start" !important;
+            }
+            simli-widget button[aria-label*="Start"] {
+              font-size: 0 !important;
+            }
+            simli-widget button[aria-label*="Start"]::after {
+              font-size: 18px !important;
+            }
+            
+            simli-widget button[aria-label*="Connecting"]::after {
+              content: "..." !important;
+            }
+            simli-widget button[aria-label*="Connecting"] {
+              font-size: 0 !important;
+            }
+            simli-widget button[aria-label*="Connecting"]::after {
+              font-size: 18px !important;
+            }
+            
+            simli-widget button[aria-label*="Close"]::after,
+            simli-widget button[aria-label*="Stop"]::after {
+              content: "End" !important;
+            }
+            simli-widget button[aria-label*="Close"],
+            simli-widget button[aria-label*="Stop"] {
+              font-size: 0 !important;
+            }
+            simli-widget button[aria-label*="Close"]::after,
+            simli-widget button[aria-label*="Stop"]::after {
+              font-size: 18px !important;
+            }
           }
           
-          simli-widget button[aria-label*="Close"]::after,
-          simli-widget button[aria-label*="Stop"]::after {
-            content: "End" !important;
-          }
-          simli-widget button[aria-label*="Close"],
-          simli-widget button[aria-label*="Stop"] {
-            font-size: 0 !important;
-          }
-          simli-widget button[aria-label*="Close"]::after,
-          simli-widget button[aria-label*="Stop"]::after {
-            font-size: 18px !important;
+          /* Mobile: No text, just button */
+          @media (max-width: 767px) {
+            simli-widget button {
+              font-size: 0 !important;
+              min-width: 60px !important;
+              min-height: 60px !important;
+            }
+            simli-widget button::after {
+              content: "" !important;
+            }
           }
           
           /* Center the widget content */
