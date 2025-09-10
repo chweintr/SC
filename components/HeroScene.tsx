@@ -23,26 +23,25 @@ export default function HeroScene() {
 
   // Calculate responsive widget size - bigger to fill screen
   const getWidgetSize = () => {
-    // Visual reference: The golden frame window starts around 20% from top
-    // and the window height is about 35% of screen height
+    // Moving down to better fit in the lower part of the frame
     if (screenSize.width < 640) { // Mobile
       return { 
         size: "80vw", 
-        top: "37%",  // Moved up significantly from 50%
+        top: "45%",  // Moved down from 37%
         left: "50%", 
         radius: "15px" 
       };
     } else if (screenSize.width < 1024) { // Tablet
       return { 
         size: "41vw", 
-        top: "35%",  // Moved up from 48.5%
+        top: "43%",  // Moved down from 35%
         left: "50%", 
         radius: "25px" 
       };
     } else { // Desktop
       return { 
         size: "27vw", 
-        top: "35%",  // Moved up from 48.5%
+        top: "43%",  // Moved down from 35%
         left: "50%", 
         radius: "30px" 
       };
