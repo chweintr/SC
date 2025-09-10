@@ -192,7 +192,7 @@ export default function HeroScene() {
              transform: "translate(-50%,-50%)", 
              borderRadius: widgetDimensions.radius,
              background: "transparent",  // Transparent background
-             border: "2px dashed rgba(255,0,0,0.5)",  // Temporary red border to see exact position
+             border: "3px solid rgba(255,0,255,0.8)",  // CHANGED: Purple border for alignment
              overflow: "visible"   // Let content show naturally
            }}>
         <SimliSquare />
@@ -212,4 +212,4 @@ export default function HeroScene() {
       </audio>
     </>
   );
-}
+}// Force rebuild at Wed Sep 10 18:49:59 EDT 2025
