@@ -178,7 +178,7 @@ export default function HeroScene() {
       </video>
 
       {/* top: full-page PNG overlay with transparent window */}
-      <img src="/overlay_33a.png" alt=""
+      <img src="/frame_5.png" alt=""
            className="fixed inset-0 z-10 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
       
