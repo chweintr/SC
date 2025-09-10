@@ -123,7 +123,7 @@ export default function HeroScene() {
       <MobileSoundToggle />
       
       {/* App Title */}
-      <div className="fixed top-8 left-0 right-0 z-20 flex justify-center">
+      <div className="fixed top-8 left-0 right-0 z-30 flex justify-center">
         <h1 className="text-5xl md:text-7xl font-black text-white uppercase"
             style={{ 
               fontFamily: "'Bebas Neue', 'Impact', 'Arial Black', sans-serif",
