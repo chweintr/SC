@@ -196,7 +196,7 @@ export default function SimliSquare() {
             justify-content: center !important;
             height: 100% !important;
             width: 100% !important;
-            background: #000 !important; /* Black background to hide borders */
+            background: transparent !important; /* Transparent background */
           }
           
           /* Style the widget container */
