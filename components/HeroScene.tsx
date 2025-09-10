@@ -26,22 +26,22 @@ export default function HeroScene() {
     // Moving down to better fit in the lower part of the frame
     if (screenSize.width < 640) { // Mobile
       return { 
-        size: "80vw", 
-        top: "52%",  // Moved down from 45%
+        size: "90vw",  // Increased from 80vw to better hide edges
+        top: "52%", 
         left: "50%", 
         radius: "15px" 
       };
     } else if (screenSize.width < 1024) { // Tablet
       return { 
         size: "41vw", 
-        top: "50%",  // Moved down from 43%
+        top: "50%", 
         left: "50%", 
         radius: "25px" 
       };
-    } else { // Desktop
+    } else { // Desktop - keeping as is, looks good
       return { 
         size: "27vw", 
-        top: "50%",  // Moved down from 43%
+        top: "50%", 
         left: "50%", 
         radius: "30px" 
       };
