@@ -70,15 +70,15 @@ export default function SimliSquare() {
         subtree: true 
       });
       
-      // Change button text from Start to Summon
+      // Change button text from Start to Start and Stop/Close to End
       const changeButtonText = () => {
         const buttons = el.querySelectorAll('button');
         buttons.forEach(button => {
           if (button.textContent?.includes('Start')) {
-            button.textContent = 'Summon';
+            button.textContent = 'Start';
           }
           if (button.textContent?.includes('Stop') || button.textContent?.includes('Close')) {
-            button.textContent = 'Dismiss';
+            button.textContent = 'End';
           }
         });
       };
@@ -111,7 +111,7 @@ export default function SimliSquare() {
           simli-widget button:first-of-type,
           simli-widget button[aria-label*="Start"],
           simli-widget button:contains("Start") {
-            background: #ec4899 !important; /* Pink for Summon */
+            background: #10b981 !important; /* Green for Start */
             color: white !important;
             border-radius: 12px !important;
             padding: 16px 32px !important;
@@ -133,7 +133,7 @@ export default function SimliSquare() {
           }
           
           simli-widget button:first-of-type:hover {
-            background: #db2777 !important; /* Darker pink on hover */
+            background: #059669 !important; /* Darker green on hover */
             transform: scale(1.05) !important;
           }
           
@@ -144,7 +144,7 @@ export default function SimliSquare() {
           
           /* Override button text with CSS */
           simli-widget button[aria-label*="Start"]::after {
-            content: "Summon" !important;
+            content: "Start" !important;
           }
           simli-widget button[aria-label*="Start"] {
             font-size: 0 !important;
@@ -155,7 +155,7 @@ export default function SimliSquare() {
           
           simli-widget button[aria-label*="Close"]::after,
           simli-widget button[aria-label*="Stop"]::after {
-            content: "Dismiss" !important;
+            content: "End" !important;
           }
           simli-widget button[aria-label*="Close"],
           simli-widget button[aria-label*="Stop"] {
