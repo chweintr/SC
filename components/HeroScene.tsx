@@ -2,6 +2,7 @@
 import * as React from "react";
 import SimliSquare from "./SimliSquare";
 import MobileSoundToggle from "./MobileSoundToggle";
+import DebugOverlay from "./DebugOverlay";
 
 export default function HeroScene() {
   // Responsive sizing based on viewport
@@ -10,7 +11,10 @@ export default function HeroScene() {
   
   React.useEffect(() => {
     const updateSize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight });
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setScreenSize({ width, height });
+      console.log(`Screen size: ${width}x${height}, Device: ${navigator.userAgent}`);
     };
     updateSize();
     window.addEventListener('resize', updateSize);
@@ -82,6 +86,9 @@ export default function HeroScene() {
 
   return (
     <>
+      {/* Debug Overlay - add ?debug=true to URL to see */}
+      <DebugOverlay />
+      
       {/* Mobile Sound Toggle */}
       <MobileSoundToggle />
       
@@ -122,9 +129,19 @@ export default function HeroScene() {
         loop 
         playsInline
         preload="auto"
-        onLoadedData={() => console.log("Background video loaded")}
-        onError={(e) => console.error("Background video error:", e)}
-        onPlay={() => console.log("Background video playing")}
+        onLoadedData={() => {
+          console.log("Background video loaded");
+          // Report to UI if needed
+          window.dispatchEvent(new CustomEvent('videoStatus', { detail: 'loaded' }));
+        }}
+        onError={(e) => {
+          console.error("Background video error:", e);
+          alert(`Video failed to load. Check console for details.`);
+        }}
+        onPlay={() => {
+          console.log("Background video playing");
+          window.dispatchEvent(new CustomEvent('videoStatus', { detail: 'playing' }));
+        }}
       >
         <source src="/video/hero_16x9.mp4" type="video/mp4" />
         Your browser does not support the video tag.
