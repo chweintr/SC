@@ -177,13 +177,8 @@ export default function HeroScene() {
         Your browser does not support the video tag.
       </video>
 
-      {/* top: full-page PNG overlay with transparent window */}
-      <img src="/frame_5.png" alt=""
-           className="fixed inset-0 z-10 pointer-events-none"
-           style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-      
-      {/* middle: Simli widget - ABOVE overlay with transparency */}
-      <div className="fixed z-20"
+      {/* middle: Simli widget - BELOW overlay */}
+      <div className="fixed z-10"
            style={{ 
              left: widgetDimensions.left || "50%", 
              top: widgetDimensions.top, 
@@ -192,11 +187,15 @@ export default function HeroScene() {
              transform: "translate(-50%,-50%)", 
              borderRadius: widgetDimensions.radius,
              background: "transparent",  // Transparent background
-             border: "3px solid rgba(255,0,255,0.8)",  // CHANGED: Purple border for alignment
-             overflow: "visible"   // Let content show naturally
+             overflow: "hidden"   // Clip content to frame
            }}>
         <SimliSquare />
       </div>
+      
+      {/* top: full-page PNG overlay with transparent window */}
+      <img src="/frame_5.png" alt=""
+           className="fixed inset-0 z-20 pointer-events-none"
+           style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
       {/* Ambient forest sounds */}
       <audio 
