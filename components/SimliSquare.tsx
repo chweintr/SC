@@ -102,17 +102,47 @@ export default function SimliSquare() {
         });
       };
       
+      // Play connection sound when button is clicked
+      const playConnectionSound = () => {
+        const audio = new Audio('/audio/connection_sound.wav');
+        audio.volume = 0.15; // Low volume (15%)
+        audio.play().catch(e => console.log('Could not play connection sound:', e));
+      };
+      
+      // Add click listener to play sound
+      const addButtonClickListener = () => {
+        const buttons = el.querySelectorAll('button');
+        buttons.forEach(button => {
+          // Only add listener to start button
+          if (button.textContent?.includes('Start') || 
+              button.getAttribute('aria-label')?.includes('Start')) {
+            button.removeEventListener('click', playConnectionSound); // Remove if exists
+            button.addEventListener('click', playConnectionSound);
+          }
+        });
+      };
+      
       // Watch for button creation
       const buttonObserver = new MutationObserver(() => {
         changeButtonText();
+        addButtonClickListener();
       });
       
       buttonObserver.observe(el, { childList: true, subtree: true });
       
       // Also try immediately and after delays
-      setTimeout(changeButtonText, 100);
-      setTimeout(changeButtonText, 500);
-      setTimeout(changeButtonText, 1000);
+      setTimeout(() => {
+        changeButtonText();
+        addButtonClickListener();
+      }, 100);
+      setTimeout(() => {
+        changeButtonText();
+        addButtonClickListener();
+      }, 500);
+      setTimeout(() => {
+        changeButtonText();
+        addButtonClickListener();
+      }, 1000);
       
       // Clear the loading message before adding widget
       if (hostRef.current) {
