@@ -3,6 +3,7 @@ import * as React from "react";
 import SimliSquare from "./SimliSquare";
 import MobileSoundToggle from "./MobileSoundToggle";
 import DebugOverlay from "./DebugOverlay";
+import MobileButtonOverlay from "./MobileButtonOverlay";
 
 export default function HeroScene() {
   // Responsive sizing based on viewport
@@ -27,7 +28,7 @@ export default function HeroScene() {
     if (screenSize.width < 640) { // Mobile
       return { 
         size: "85vw",  // Reduced from 90vw for better button visibility
-        top: "50%",    // Moved up from 52%
+        top: "52%",    // Moved down to better align with frame
         left: "50%", 
         radius: "15px" 
       };
@@ -121,6 +122,9 @@ export default function HeroScene() {
       
       {/* Mobile Sound Toggle */}
       <MobileSoundToggle />
+      
+      {/* Mobile Button Overlay - above frame, passes clicks through */}
+      <MobileButtonOverlay />
       
       {/* App Title */}
       <div className="fixed top-8 left-0 right-0 z-30 flex justify-center">
