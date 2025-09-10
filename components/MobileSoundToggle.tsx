@@ -24,13 +24,13 @@ export default function MobileSoundToggle() {
     // Mute/unmute all audio elements
     const audioElements = document.querySelectorAll('audio');
     audioElements.forEach(audio => {
-      audio.muted = newMutedState;
+      (audio as HTMLAudioElement).muted = newMutedState;
     });
     
     // Mute/unmute all video elements except background (including Simli)
     const videoElements = document.querySelectorAll('video:not(.background-video)');
     videoElements.forEach(video => {
-      video.muted = newMutedState;
+      (video as HTMLVideoElement).muted = newMutedState;
     });
     
     // Handle Simli widget specifically
@@ -39,7 +39,7 @@ export default function MobileSoundToggle() {
       // Try to find Simli's internal audio/video elements
       const simliMedia = simliWidget.querySelectorAll('audio, video');
       simliMedia.forEach(media => {
-        media.muted = newMutedState;
+        (media as HTMLMediaElement).muted = newMutedState;
       });
     }
     
@@ -83,7 +83,7 @@ export default function MobileSoundToggle() {
     if (savedMuted) {
       setIsMuted(true);
       // Apply to existing elements
-      document.querySelectorAll('audio, video').forEach(media => {
+      document.querySelectorAll('audio, video:not(.background-video)').forEach(media => {
         (media as HTMLMediaElement).muted = true;
       });
     }
