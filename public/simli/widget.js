@@ -91,7 +91,7 @@ const WIDGET_STYLES = {
       font-weight: 500;
       font-family: "ABCRepro", sans-serif;
       cursor: pointer;
-      background-color: #0000FF;
+      background-color: #ec4899;
       border-radius: 24px;
       border: none;
       color: white;
@@ -111,7 +111,7 @@ const WIDGET_STYLES = {
       border-radius: 4px;
     `,
     active: `
-      background-color: #ff0000;
+      background-color: #db2777;
       color: white;
     `
   }
@@ -189,7 +189,7 @@ const OVERLAY_STYLES = {
       font-size: 16px;
       font-weight: 500;
       cursor: pointer;
-      background-color: #007AFF;
+      background-color: #ec4899;
       border-radius: 8px;
       border: none;
       color: white;
@@ -202,12 +202,12 @@ const OVERLAY_STYLES = {
       text-overflow: ellipsis;
     `,
     hover: `
-      background-color: #0056b3;
+      background-color: #db2777;
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     `,
     active: `
-      background-color: #dc3545;
+      background-color: #be185d;
     `
   },
 
