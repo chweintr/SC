@@ -89,6 +89,11 @@ export default function SimliSquare() {
           if (isMobile) {
             // No text on mobile - just the button
             button.textContent = '';
+            button.innerHTML = '';
+            // Also remove any child text nodes
+            while (button.firstChild) {
+              button.removeChild(button.firstChild);
+            }
           } else {
             // Desktop text
             if (button.textContent?.includes('Start')) {
@@ -242,15 +247,22 @@ export default function SimliSquare() {
             }
           }
           
-          /* Mobile: No text, just button */
+          /* Mobile: No text, just button - more aggressive */
           @media (max-width: 767px) {
             simli-widget button {
               font-size: 0 !important;
               min-width: 60px !important;
               min-height: 60px !important;
+              text-indent: -9999px !important;
+              color: transparent !important;
             }
-            simli-widget button::after {
+            simli-widget button * {
+              display: none !important;
+            }
+            simli-widget button::after,
+            simli-widget button::before {
               content: "" !important;
+              display: none !important;
             }
           }
           

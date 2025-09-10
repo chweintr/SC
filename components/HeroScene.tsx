@@ -26,8 +26,8 @@ export default function HeroScene() {
     // Moving down to better fit in the lower part of the frame
     if (screenSize.width < 640) { // Mobile
       return { 
-        size: "90vw",  // Increased from 80vw to better hide edges
-        top: "52%", 
+        size: "85vw",  // Reduced from 90vw for better button visibility
+        top: "50%",    // Moved up from 52%
         left: "50%", 
         radius: "15px" 
       };
@@ -84,7 +84,7 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        audio.volume = 0.005; // Super quiet background volume (0.5%)
+        audio.volume = 0.002; // Ultra quiet background volume (0.2%)
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
