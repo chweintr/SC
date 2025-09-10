@@ -104,9 +104,12 @@ export default function SimliSquare() {
       
       // Play connection sound when button is clicked
       const playConnectionSound = () => {
+        console.log('Playing connection sound...');
         const audio = new Audio('/audio/connection_sound.wav');
-        audio.volume = 0.15; // Low volume (15%)
-        audio.play().catch(e => console.log('Could not play connection sound:', e));
+        audio.volume = 0.3; // Increased to 30% volume
+        audio.play()
+          .then(() => console.log('Connection sound started'))
+          .catch(e => console.error('Could not play connection sound:', e));
       };
       
       // Add click listener to play sound

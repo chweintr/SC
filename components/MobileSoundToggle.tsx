@@ -95,7 +95,7 @@ export default function MobileSoundToggle() {
   return (
     <button
       onClick={toggleAudio}
-      className="fixed top-4 right-4 z-50 p-3 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 transition-all hover:bg-black/70 active:scale-95"
+      className="fixed top-20 right-2 z-50 p-3 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 transition-all hover:bg-black/70 active:scale-95"
       aria-label={isMuted ? "Unmute audio" : "Mute audio"}
     >
       {isMuted ? (

@@ -84,7 +84,7 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        audio.volume = 0.01; // Ultra quiet background volume (1%)
+        audio.volume = 0.005; // Super quiet background volume (0.5%)
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
