@@ -59,6 +59,17 @@ export default function SimliSquare() {
             if (idleVideo && simliVideo && simliVideo.srcObject) {
               console.log("Simli stream detected, hiding idle video");
               idleVideo.style.display = 'none';
+              
+              // Apply current mute state to Simli video
+              const isMuted = sessionStorage.getItem('audioMuted') === 'true';
+              if (isMuted) {
+                simliVideo.muted = true;
+                // Also mute any audio elements in the widget
+                const audioElements = el.querySelectorAll('audio');
+                audioElements.forEach(audio => {
+                  (audio as HTMLAudioElement).muted = true;
+                });
+              }
             }
           }
         });

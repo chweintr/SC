@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import SimliSquare from "./SimliSquare";
+import MobileSoundToggle from "./MobileSoundToggle";
 
 export default function HeroScene() {
   // Responsive sizing based on viewport
@@ -81,6 +82,9 @@ export default function HeroScene() {
 
   return (
     <>
+      {/* Mobile Sound Toggle */}
+      <MobileSoundToggle />
+      
       {/* App Title */}
       <div className="fixed top-8 left-0 right-0 z-20 flex justify-center">
         <h1 className="text-5xl md:text-7xl font-black text-white uppercase"
@@ -112,7 +116,7 @@ export default function HeroScene() {
       {/* bottom: full-page 16:9 video */}
       <video 
         ref={backgroundVideoRef}
-        className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
+        className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover background-video"
         autoPlay 
         muted 
         loop 
