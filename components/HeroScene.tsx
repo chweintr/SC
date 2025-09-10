@@ -34,7 +34,7 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        audio.volume = 0.02; // Extra quiet background volume (2%)
+        audio.volume = 0.01; // Ultra quiet background volume (1%)
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
@@ -96,7 +96,17 @@ export default function HeroScene() {
 
       {/* bottom: full-page 16:9 video */}
       <video className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
-             autoPlay muted loop playsInline src="/video/hero_16x9.mp4" />
+             autoPlay 
+             muted 
+             loop 
+             playsInline
+             preload="auto"
+             poster="/video/hero_16x9_poster.jpg"
+             webkit-playsinline="true"
+             x5-video-player-type="h5"
+             x5-video-player-fullscreen="true">
+        <source src="/video/hero_16x9.mp4" type="video/mp4" />
+      </video>
 
       {/* middle: Simli widget - below overlay */}
       <div className="fixed z-[5]"
