@@ -146,7 +146,7 @@ export default function HeroScene() {
       </div>
 
       {/* top: full-page PNG overlay with transparent window */}
-      <img src="/public_ui_device_frame_5.png" alt=""
+      <img src="/public_ui_device_frame_6.png" alt=""
            className="fixed inset-0 z-10 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
