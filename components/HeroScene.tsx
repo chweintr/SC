@@ -20,9 +20,9 @@ export default function HeroScene() {
     if (screenSize.width < 640) { // Mobile
       return { size: "85vw", top: "50%", left: "50%", radius: "15px" };
     } else if (screenSize.width < 1024) { // Tablet
-      return { size: "44vw", top: "48.5%", left: "49.5%", radius: "25px" };
+      return { size: "44vw", top: "48.5%", left: "50%", radius: "25px" };
     } else { // Desktop
-      return { size: "29vw", top: "48.5%", left: "49.5%", radius: "30px" };
+      return { size: "29vw", top: "48.5%", left: "50%", radius: "30px" };
     }
   };
   

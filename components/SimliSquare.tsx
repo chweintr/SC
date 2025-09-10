@@ -111,17 +111,26 @@ export default function SimliSquare() {
           simli-widget button:first-of-type,
           simli-widget button[aria-label*="Start"],
           simli-widget button:contains("Start") {
-            background: #10b981 !important; /* Green for Start */
-            color: white !important;
-            border-radius: 12px !important;
-            padding: 16px 32px !important;
-            font-weight: bold !important;
-            font-size: 18px !important;
+            background: #8B4513 !important; /* Brown metal color */
+            color: #FFF8DC !important; /* Cream text */
+            border-radius: 50% !important; /* Circular button */
+            width: 80px !important;
+            height: 80px !important;
+            padding: 0 !important;
+            font-weight: 900 !important;
+            font-size: 16px !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
             transition: all 0.2s !important;
-            border: none !important;
+            border: 3px solid #654321 !important; /* Darker brown border */
             cursor: pointer !important;
             position: relative !important;
             z-index: 1000 !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 
+                        0 4px 8px rgba(0,0,0,0.5),
+                        inset 0 -2px 4px rgba(101,67,33,0.8) !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+            font-family: "Impact", "Arial Black", sans-serif !important;
           }
           
           /* Close/Stop button */
@@ -133,8 +142,11 @@ export default function SimliSquare() {
           }
           
           simli-widget button:first-of-type:hover {
-            background: #059669 !important; /* Darker green on hover */
+            background: #A0522D !important; /* Lighter brown on hover */
             transform: scale(1.05) !important;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 
+                        0 6px 12px rgba(0,0,0,0.6),
+                        inset 0 -2px 6px rgba(101,67,33,0.9) !important;
           }
           
           simli-widget button:last-of-type:hover {
