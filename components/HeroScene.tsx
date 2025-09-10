@@ -5,6 +5,7 @@ import SimliSquare from "./SimliSquare";
 export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
+  const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
   
   React.useEffect(() => {
     const updateSize = () => {
@@ -27,6 +28,20 @@ export default function HeroScene() {
   };
   
   const widgetDimensions = getWidgetSize();
+
+  // Start background video if autoplay fails
+  React.useEffect(() => {
+    if (backgroundVideoRef.current) {
+      backgroundVideoRef.current.play().catch(e => {
+        console.log("Background video autoplay failed, will play on user interaction");
+        const tryPlay = () => {
+          backgroundVideoRef.current?.play().catch(() => {});
+        };
+        document.addEventListener('click', tryPlay, { once: true });
+        document.addEventListener('touchstart', tryPlay, { once: true });
+      });
+    }
+  }, []);
 
   // Start ambient sounds when component mounts
   React.useEffect(() => {
@@ -95,17 +110,20 @@ export default function HeroScene() {
       </div>
 
       {/* bottom: full-page 16:9 video */}
-      <video className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
-             autoPlay 
-             muted 
-             loop 
-             playsInline
-             preload="auto"
-             poster="/video/hero_16x9_poster.jpg"
-             webkit-playsinline="true"
-             x5-video-player-type="h5"
-             x5-video-player-fullscreen="true">
+      <video 
+        ref={backgroundVideoRef}
+        className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover"
+        autoPlay 
+        muted 
+        loop 
+        playsInline
+        preload="auto"
+        onLoadedData={() => console.log("Background video loaded")}
+        onError={(e) => console.error("Background video error:", e)}
+        onPlay={() => console.log("Background video playing")}
+      >
         <source src="/video/hero_16x9.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
 
       {/* middle: Simli widget - below overlay */}
