@@ -27,21 +27,21 @@ export default function HeroScene() {
     if (screenSize.width < 640) { // Mobile
       return { 
         size: "80vw", 
-        top: "45%",  // Moved down from 37%
+        top: "52%",  // Moved down from 45%
         left: "50%", 
         radius: "15px" 
       };
     } else if (screenSize.width < 1024) { // Tablet
       return { 
         size: "41vw", 
-        top: "43%",  // Moved down from 35%
+        top: "50%",  // Moved down from 43%
         left: "50%", 
         radius: "25px" 
       };
     } else { // Desktop
       return { 
         size: "27vw", 
-        top: "43%",  // Moved down from 35%
+        top: "50%",  // Moved down from 43%
         left: "50%", 
         radius: "30px" 
       };
