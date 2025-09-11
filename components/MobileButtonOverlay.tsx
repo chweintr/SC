@@ -41,17 +41,23 @@ export default function MobileButtonOverlay() {
         }}
       />
       
-      {/* Or use a styled div instead of image */}
-      {/* <div 
-        style={{
-          width: '100%',
-          height: '100%',
+      {/* Temporary positioning guide - remove when aligned */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'absolute',
+          left: '73%',
+          top: '57%',
+          transform: 'translate(-50%, -50%)',
+          width: '80px',
+          height: '80px',
+          border: '2px dashed yellow',
           borderRadius: '50%',
-          border: '3px solid #8B4513',
-          background: 'radial-gradient(circle, rgba(139,69,19,0.2) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }}
-      /> */}
+          pointerEvents: 'none',
+          zIndex: 100
+        }}>
+          <span style={{color: 'yellow', fontSize: '10px'}}>Target</span>
+        </div>
+      )}
     </div>
   );
 }
