@@ -55,9 +55,9 @@ export default function ClickZone() {
         transform: 'translate(-50%, -50%)',
         width: '80px',
         height: '80px',
-        // Semi-transparent for debugging
-        background: 'rgba(255, 0, 0, 0.3)',
-        border: '2px solid yellow',
+        // Invisible but clickable
+        background: 'transparent',
+        // border: '2px dashed red', // Uncomment to see position
       }}
       aria-label="Activate Squatch"
     />
