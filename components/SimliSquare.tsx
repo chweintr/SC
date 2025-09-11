@@ -87,13 +87,23 @@ export default function SimliSquare() {
         const buttons = el.querySelectorAll('button');
         buttons.forEach(button => {
           if (isMobile) {
-            // No text on mobile - just the button
+            // Aggressively remove ALL text on mobile
             button.textContent = '';
             button.innerHTML = '';
-            // Also remove any child text nodes
-            while (button.firstChild) {
-              button.removeChild(button.firstChild);
-            }
+            // Remove any text from all child elements
+            button.querySelectorAll('*').forEach(child => {
+              if (child.textContent) {
+                child.textContent = '';
+              }
+            });
+            // Remove text nodes
+            Array.from(button.childNodes).forEach(node => {
+              if (node.nodeType === Node.TEXT_NODE) {
+                node.textContent = '';
+              }
+            });
+            // Set aria-label to empty to prevent screen readers
+            button.setAttribute('aria-label', '');
           } else {
             // Desktop text
             if (button.textContent?.includes('Start')) {
@@ -130,13 +140,34 @@ export default function SimliSquare() {
         });
       };
       
-      // Watch for button creation
-      const buttonObserver = new MutationObserver(() => {
+      // Watch for button creation and text changes
+      const buttonObserver = new MutationObserver((mutations) => {
         changeButtonText();
         addButtonClickListener();
+        
+        // Extra aggressive for mobile - watch for ANY text changes
+        if (window.innerWidth < 768) {
+          mutations.forEach(mutation => {
+            if (mutation.type === 'characterData' || mutation.type === 'childList') {
+              const buttons = el.querySelectorAll('button');
+              buttons.forEach(button => {
+                if (button.textContent && button.textContent.trim() !== '') {
+                  console.log('Removing text:', button.textContent);
+                  button.textContent = '';
+                  button.innerHTML = '';
+                }
+              });
+            }
+          });
+        }
       });
       
-      buttonObserver.observe(el, { childList: true, subtree: true });
+      buttonObserver.observe(el, { 
+        childList: true, 
+        subtree: true, 
+        characterData: true,
+        characterDataOldValue: true 
+      });
       
       // Also try immediately and after delays
       setTimeout(() => {
