@@ -144,7 +144,7 @@ export default function HeroScene() {
               transform: "perspective(300px) rotateY(-5deg)",
               animation: "titleGlow 3s ease-in-out infinite alternate"
             }}>
-          SQUATCHAT
+          SQUATCHCHAT
         </h1>
         <style jsx>{`
           @keyframes titleGlow {

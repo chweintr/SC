@@ -15,14 +15,30 @@ export default function ClickZone() {
   }, []);
 
   const handleClick = () => {
+    console.log('ClickZone clicked!');
     // Find the actual Simli button and click it
     const simliWidget = document.querySelector('simli-widget');
+    console.log('Found simli-widget:', !!simliWidget);
+    
     if (simliWidget) {
-      const button = simliWidget.querySelector('button');
-      if (button) {
-        console.log('Forwarding click to Simli button');
+      const buttons = simliWidget.querySelectorAll('button');
+      console.log('Found buttons:', buttons.length);
+      
+      if (buttons.length > 0) {
+        const button = buttons[0]; // Get first button
+        console.log('Button text:', button.textContent);
+        console.log('Button visible:', button.offsetWidth > 0);
+        console.log('Clicking button...');
+        
+        // Try multiple click methods
         button.click();
+        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        button.dispatchEvent(new Event('click', { bubbles: true }));
+      } else {
+        console.log('No buttons found in simli-widget');
       }
+    } else {
+      console.log('simli-widget not found');
     }
   };
 
@@ -39,10 +55,9 @@ export default function ClickZone() {
         transform: 'translate(-50%, -50%)',
         width: '80px',
         height: '80px',
-        // Invisible but clickable
-        background: 'transparent',
-        // Optional: show border during development
-        // border: '2px dashed red',
+        // Semi-transparent for debugging
+        background: 'rgba(255, 0, 0, 0.3)',
+        border: '2px solid yellow',
       }}
       aria-label="Activate Squatch"
     />

@@ -173,6 +173,12 @@ export default function SimliSquare() {
       setTimeout(() => {
         changeButtonText();
         addButtonClickListener();
+        // Debug: log button status
+        const buttons = el.querySelectorAll('button');
+        console.log(`[SimliSquare] Found ${buttons.length} buttons after 100ms`);
+        buttons.forEach((btn, i) => {
+          console.log(`Button ${i}: "${btn.textContent}", visible: ${btn.offsetWidth > 0}`);
+        });
       }, 100);
       setTimeout(() => {
         changeButtonText();
@@ -181,6 +187,9 @@ export default function SimliSquare() {
       setTimeout(() => {
         changeButtonText();
         addButtonClickListener();
+        // Final button check
+        const buttons = el.querySelectorAll('button');
+        console.log(`[SimliSquare] Final button count: ${buttons.length}`);
       }, 1000);
       
       // Clear the loading message before adding widget
