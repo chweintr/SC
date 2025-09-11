@@ -3,7 +3,7 @@ import * as React from "react";
 import SimliSquare from "./SimliSquare";
 import MobileSoundToggle from "./MobileSoundToggle";
 import DebugOverlay from "./DebugOverlay";
-import MobileButtonOverlay from "./MobileButtonOverlay";
+import ClickZone from "./ClickZone";
 
 export default function HeroScene() {
   // Responsive sizing based on viewport
@@ -123,6 +123,9 @@ export default function HeroScene() {
       {/* Mobile Sound Toggle */}
       <MobileSoundToggle />
       
+      {/* Click Zone for red button - highest layer */}
+      <ClickZone />
+      
       {/* App Title */}
       <div className="fixed top-8 left-0 right-0 z-30 flex justify-center">
         <h1 className="text-5xl md:text-7xl font-black text-white uppercase"
@@ -194,7 +197,7 @@ export default function HeroScene() {
       </div>
       
       {/* top: full-page PNG overlay with transparent window */}
-      <img src="/frame_5.png" alt=""
+      <img src="/Overlay_9.png" alt=""
            className="fixed inset-0 z-20 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
