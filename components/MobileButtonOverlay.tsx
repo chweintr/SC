@@ -20,11 +20,12 @@ export default function MobileButtonOverlay() {
     <div 
       className="fixed z-25"
       style={{
-        // Full screen overlay to match your 16:9 image
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
+        // Position just the button part where it needs to be
+        left: '73%',
+        top: '57%',
+        transform: 'translate(-50%, -50%)',
+        width: '120px',  // Adjust to your button size
+        height: '120px',
         // This is the key - allows clicks to pass through
         pointerEvents: 'none'
       }}
@@ -36,28 +37,11 @@ export default function MobileButtonOverlay() {
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',  // Cover the full viewport
+          objectFit: 'contain',  // Keep button aspect ratio
           pointerEvents: 'none'  // Ensure image doesn't block
         }}
       />
       
-      {/* Temporary positioning guide - remove when aligned */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'absolute',
-          left: '73%',
-          top: '57%',
-          transform: 'translate(-50%, -50%)',
-          width: '80px',
-          height: '80px',
-          border: '2px dashed yellow',
-          borderRadius: '50%',
-          pointerEvents: 'none',
-          zIndex: 100
-        }}>
-          <span style={{color: 'yellow', fontSize: '10px'}}>Target</span>
-        </div>
-      )}
     </div>
   );
 }
