@@ -20,12 +20,11 @@ export default function MobileButtonOverlay() {
     <div 
       className="fixed z-25"
       style={{
-        // Position this exactly where the button cutout is
-        left: '73%',     // Adjusted for right side button position
-        top: '52%',      // Match Simli widget position
-        transform: 'translate(-50%, -50%)',
-        width: '100px',  // Adjust based on your overlay size
-        height: '100px',
+        // Full screen overlay to match your 16:9 image
+        left: '0',
+        top: '0',
+        width: '100vw',
+        height: '100vh',
         // This is the key - allows clicks to pass through
         pointerEvents: 'none'
       }}
@@ -37,6 +36,7 @@ export default function MobileButtonOverlay() {
         style={{
           width: '100%',
           height: '100%',
+          objectFit: 'cover',  // Cover the full viewport
           pointerEvents: 'none'  // Ensure image doesn't block
         }}
       />
