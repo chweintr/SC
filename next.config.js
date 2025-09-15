@@ -13,6 +13,10 @@ module.exports = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  output: 'export',
+  images: {
+    unoptimized: true
+  },
   async headers() {
     return [{ source: '/(.*)', headers: [{ key: 'Content-Security-Policy', value: CSP }] }];
   },

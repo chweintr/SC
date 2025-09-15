@@ -10,12 +10,20 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:deploy": "prisma migrate deploy",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "export": "next build && next export -o out",
+    "cap:add": "npx @capacitor/cli add ios",
+    "cap:sync": "npx @capacitor/cli sync ios",
+    "cap:open": "npx @capacitor/cli open ios",
+    "ios": "npm run export && npm run cap:sync && npm run cap:open"
   },
   "engines": {
     "node": ">=20 <21"
   },
   "dependencies": {
+    "@capacitor/app": "^7.1.0",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "@prisma/client": "^6.15.0",
     "jsonwebtoken": "^9.0.2",
     "livekit-client": "^2.15.6",
