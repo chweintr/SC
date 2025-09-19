@@ -11,11 +11,17 @@ const CSP = `
 
 module.exports = {
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
-  output: 'export',
+  /**
+   * The app relies on dynamic API routes (e.g. /api/simli/session) to inject
+   * secrets at request-time, so static export cannot work. Force a standalone
+   * server build to keep Docker and Railway deployments from switching to the
+   * incompatible `output: "export"` mode.
+   */
+  output: 'standalone',
   images: {
-    unoptimized: true
+    unoptimized: true,
   },
   async headers() {
     return [{ source: '/(.*)', headers: [{ key: 'Content-Security-Policy', value: CSP }] }];
