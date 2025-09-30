@@ -13,9 +13,17 @@ export default function SimliSquare() {
         return; 
       }
       
-      const { token, avatarid } = await r.json();
+      const responseData = await r.json();
+      const { token, avatarid, _isMock } = responseData;
+
       console.log("SimliSquare: Got token and avatar ID:", avatarid);
-      console.log("SimliSquare: Full response:", { token: token?.substring(0, 20) + '...', avatarid });
+      console.log("SimliSquare: Full response:", { token: token?.substring(0, 20) + '...', avatarid, isMock: _isMock });
+
+      // In development with mock token, don't show anything (let idle video play through)
+      if (_isMock) {
+        console.log("SimliSquare: Using mock token for development - showing nothing");
+        return; // Don't create any widget, let idle video show through
+      }
 
       const el = document.createElement("simli-widget");
       

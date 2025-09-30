@@ -3,7 +3,23 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
   const apiKey = process.env.SIMLI_API_KEY;
   const avatarId = process.env.SIMLI_AVATAR_ID || "c0736bf4-ab63-4795-8983-7a9377c93ecb";
-  
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  // In development, return mock response if API key is missing (for UI development)
+  if (!apiKey && isDevelopment) {
+    console.log("Development mode: Returning mock Simli token response");
+    return NextResponse.json({
+      token: "mock_development_token_" + Date.now(),
+      avatarid: avatarId,
+      avatarId: avatarId,
+      agentId: avatarId,
+      agentid: avatarId,
+      _isMock: true
+    }, {
+      headers: { "Cache-Control": "no-store" }
+    });
+  }
+
   if (!apiKey || !avatarId) {
     return NextResponse.json({ error: "missing_env", haveApiKey: !!apiKey, haveAvatarId: !!avatarId }, { status: 500 });
   }

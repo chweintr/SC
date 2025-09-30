@@ -181,14 +181,37 @@ export default function HeroScene() {
         Your browser does not support the video tag.
       </video>
 
+      {/* Idle video - plays in mount until Simli starts */}
+      <video
+        id="idle-video"
+        className="fixed z-5"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        style={{
+          left: widgetDimensions.left || "50%",
+          top: widgetDimensions.top,
+          width: widgetDimensions.size,
+          height: widgetDimensions.size,
+          transform: "translate(-50%,-50%)",
+          borderRadius: widgetDimensions.radius,
+          objectFit: "cover"
+        }}
+      >
+        <source src="/squatch-idle.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
       {/* middle: Simli widget - BELOW overlay */}
       <div className="fixed z-10"
-           style={{ 
-             left: widgetDimensions.left || "50%", 
-             top: widgetDimensions.top, 
-             width: widgetDimensions.size, 
+           style={{
+             left: widgetDimensions.left || "50%",
+             top: widgetDimensions.top,
+             width: widgetDimensions.size,
              height: widgetDimensions.size,
-             transform: "translate(-50%,-50%)", 
+             transform: "translate(-50%,-50%)",
              borderRadius: widgetDimensions.radius,
              background: "transparent",  // Transparent background
              overflow: "hidden"   // Clip content to frame
