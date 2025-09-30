@@ -297,12 +297,17 @@ export default function HeroScene() {
         <SimliSquare />
       </div>
       
-      {/* top: full-page PNG overlay with transparent window */}
+      {/* top: full-page PNG overlay with transparent window - blurred edges */}
       <img src="/Overlay_9.png" alt=""
            className="fixed inset-0 z-20 pointer-events-none"
-           style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+           style={{ 
+             width:"100%", 
+             height:"100%", 
+             objectFit:"cover",
+             filter: "blur(1px)"  // Soften the rough edges
+           }} />
 
-      {/* Loading spinner on red button - shows while connecting - HIGH Z-INDEX */}
+      {/* Loading spinner on red button - shows while connecting - SUPER HIGH Z-INDEX */}
       {isConnecting && (
         <div 
           className="fixed pointer-events-none"
@@ -310,18 +315,22 @@ export default function HeroScene() {
             left: "75%",
             top: "61%",
             transform: "translate(-50%, -50%)",
-            zIndex: 1000
+            zIndex: 9999,
+            background: "rgba(255, 0, 0, 0.2)", // DEBUG: red background to see if it's rendering
+            padding: "10px"
           }}
         >
           <div 
             className="rounded-full"
             style={{
-              width: "70px",
-              height: "70px",
-              border: "6px solid rgba(255, 215, 0, 0.3)",
-              borderTop: "6px solid #FFD700",
-              animation: "spin 0.8s linear infinite",
-              boxShadow: "0 0 30px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 215, 0, 0.5)"
+              width: "80px",
+              height: "80px",
+              border: "8px solid rgba(255, 215, 0, 0.4)",
+              borderTop: "8px solid #FFD700",
+              borderRight: "8px solid #FFA500",
+              animation: "spin 0.6s linear infinite",
+              boxShadow: "0 0 40px rgba(255, 215, 0, 1), inset 0 0 30px rgba(255, 215, 0, 0.8)",
+              background: "rgba(255, 215, 0, 0.1)"
             }}
           />
           <style jsx>{`
