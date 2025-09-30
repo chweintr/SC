@@ -268,6 +268,34 @@ export default function HeroScene() {
            className="fixed inset-0 z-20 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
 
+      {/* Loading spinner on red button - shows while connecting */}
+      {isConnecting && (
+        <div 
+          className="fixed z-30 pointer-events-none"
+          style={{
+            left: "75%",
+            top: "61%",
+            transform: "translate(-50%, -50%)"
+          }}
+        >
+          <div 
+            className="rounded-full border-4 border-white border-t-transparent"
+            style={{
+              width: "50px",
+              height: "50px",
+              animation: "spin 1s linear infinite",
+              boxShadow: "0 0 20px rgba(255,255,255,0.8)"
+            }}
+          />
+          <style jsx>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* Instruction text - shows initially, positioned below device frame */}
       {showInstructions && !isConnecting && (
         <div 
