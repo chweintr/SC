@@ -325,13 +325,14 @@ export default function HeroScene() {
       {/* Connecting message - shows while Simli is loading, positioned below device */}
       {isConnecting && (
         <div 
-          className="fixed z-30 pointer-events-none"
+          className="fixed pointer-events-none"
           style={{
             left: "50%",
             bottom: "15%",
             transform: "translateX(-50%)",
             textAlign: "center",
-            maxWidth: "90%"
+            maxWidth: "90%",
+            zIndex: 1000
           }}
         >
           <p className="text-white text-base md:text-lg font-bold px-6 py-3 rounded-lg"
