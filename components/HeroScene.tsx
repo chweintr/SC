@@ -81,77 +81,30 @@ export default function HeroScene() {
     }
   }, []);
 
-  // Random connecting messages for variety
-  const connectingMessages = [
-    "Hang tight, Squatch is looking for the unmute button...",
-    "Squatch is shaking off the cobwebs...",
-    "Waking up the big guy...",
-    "Squatch is emerging from the forest...",
-    "Getting Squatch on the line..."
-  ];
-  
-  const [connectingMessage] = React.useState(() => 
-    connectingMessages[Math.floor(Math.random() * connectingMessages.length)]
-  );
-
-  // Listen for button clicks and Simli state changes
+  // Simple message on click - no complex spinner logic
   React.useEffect(() => {
-    let connectingTimeout: NodeJS.Timeout;
-    
-    const handleButtonClick = () => {
-      console.log('🔴 Button clicked! Setting connecting state...');
-      setShowInstructions(false);
-      setIsConnecting(true);
-      
-      // Auto-hide spinner after 6 seconds as backup
-      connectingTimeout = setTimeout(() => {
-        console.log('⏰ 6 second timeout - hiding spinner');
-        setIsConnecting(false);
-      }, 6000);
-    };
-    
-    const handleSimliStart = () => {
-      console.log('🟢 Simli started! Hiding connecting state...');
-      setIsConnecting(false);
-      if (connectingTimeout) clearTimeout(connectingTimeout);
-    };
-    
-    // Listen for ClickZone clicks
-    document.addEventListener('squatch-button-clicked', handleButtonClick);
-    
-    // ALSO listen for ANY clicks as backup
     const handleAnyClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      console.log('Click detected on:', target);
-      // If clicking in the button area, trigger connecting
       const rect = document.body.getBoundingClientRect();
       const x = (e.clientX / rect.width) * 100;
       const y = (e.clientY / rect.height) * 100;
-      console.log(`Click at: ${x.toFixed(0)}% x ${y.toFixed(0)}%`);
       
       // Red button is around 75% x, 61% y
       if (x > 65 && x < 85 && y > 50 && y < 70) {
-        console.log('🔴 Click in button area detected!');
-        handleButtonClick();
+        console.log('🔴 Button clicked - showing message');
+        setShowInstructions(false);
+        setIsConnecting(true);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          setIsConnecting(false);
+        }, 5000);
       }
     };
     
     document.addEventListener('click', handleAnyClick);
     
-    // Listen for Simli video stream starting
-    const checkForSimliVideo = setInterval(() => {
-      const simliVideo = document.querySelector('simli-widget video[srcObject]');
-      if (simliVideo) {
-        handleSimliStart();
-        clearInterval(checkForSimliVideo);
-      }
-    }, 500);
-    
     return () => {
-      document.removeEventListener('squatch-button-clicked', handleButtonClick);
       document.removeEventListener('click', handleAnyClick);
-      clearInterval(checkForSimliVideo);
-      if (connectingTimeout) clearTimeout(connectingTimeout);
     };
   }, []);
 
@@ -161,9 +114,9 @@ export default function HeroScene() {
     setTimeout(() => {
       const audio = document.getElementById('forest-ambience') as HTMLAudioElement;
       if (audio) {
-        // Set volume based on device - quieter on mobile, audible on desktop
+        // Set volume based on device - lower volume for better UX
         const isMobile = window.innerWidth < 768;
-        audio.volume = isMobile ? 0.15 : 0.25; // 15% mobile, 25% desktop
+        audio.volume = isMobile ? 0.08 : 0.12; // 8% mobile, 12% desktop
         // Try to play on user interaction or after a delay
         const playAudio = () => {
           audio.play().then(() => {
@@ -307,38 +260,27 @@ export default function HeroScene() {
              filter: "blur(1px)"  // Soften the rough edges
            }} />
 
-      {/* Loading spinner on red button - shows while connecting - SUPER HIGH Z-INDEX */}
+      {/* Simple connecting message near button - shows for 5 seconds */}
       {isConnecting && (
         <div 
           className="fixed pointer-events-none"
           style={{
             left: "75%",
-            top: "61%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 9999,
-            background: "rgba(255, 0, 0, 0.2)", // DEBUG: red background to see if it's rendering
-            padding: "10px"
+            top: "72%",
+            transform: "translateX(-50%)",
+            textAlign: "center",
+            zIndex: 9999
           }}
         >
-          <div 
-            className="rounded-full"
-            style={{
-              width: "80px",
-              height: "80px",
-              border: "8px solid rgba(255, 215, 0, 0.4)",
-              borderTop: "8px solid #FFD700",
-              borderRight: "8px solid #FFA500",
-              animation: "spin 0.6s linear infinite",
-              boxShadow: "0 0 40px rgba(255, 215, 0, 1), inset 0 0 30px rgba(255, 215, 0, 0.8)",
-              background: "rgba(255, 215, 0, 0.1)"
-            }}
-          />
-          <style jsx>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
+          <p className="text-white text-sm md:text-base font-bold px-4 py-2 rounded-lg"
+             style={{
+               background: "rgba(0,0,0,0.8)",
+               textShadow: "0 2px 4px rgba(0,0,0,0.9)",
+               fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+               letterSpacing: "0.05em"
+             }}>
+            Hang tight...<br/>Squatch is connecting
+          </p>
         </div>
       )}
 
@@ -365,31 +307,6 @@ export default function HeroScene() {
         </div>
       )}
 
-      {/* Connecting message - shows while Simli is loading, positioned higher */}
-      {isConnecting && (
-        <div 
-          className="fixed pointer-events-none"
-          style={{
-            left: "50%",
-            bottom: "25%",
-            transform: "translateX(-50%)",
-            textAlign: "center",
-            maxWidth: "90%",
-            zIndex: 1000
-          }}
-        >
-          <p className="text-white text-base md:text-lg font-bold px-6 py-3 rounded-lg"
-             style={{
-               background: "rgba(0,0,0,0.8)",
-               textShadow: "0 2px 4px rgba(0,0,0,0.9)",
-               fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-               letterSpacing: "0.05em",
-               animation: "pulse 2s ease-in-out infinite"
-             }}>
-            {connectingMessage}
-          </p>
-        </div>
-      )}
 
       {/* Ambient forest sounds */}
       <audio 
