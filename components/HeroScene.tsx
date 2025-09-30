@@ -96,15 +96,24 @@ export default function HeroScene() {
 
   // Listen for button clicks and Simli state changes
   React.useEffect(() => {
+    let connectingTimeout: NodeJS.Timeout;
+    
     const handleButtonClick = () => {
       console.log('🔴 Button clicked! Setting connecting state...');
       setShowInstructions(false);
       setIsConnecting(true);
+      
+      // Auto-hide spinner after 6 seconds as backup
+      connectingTimeout = setTimeout(() => {
+        console.log('⏰ 6 second timeout - hiding spinner');
+        setIsConnecting(false);
+      }, 6000);
     };
     
     const handleSimliStart = () => {
       console.log('🟢 Simli started! Hiding connecting state...');
       setIsConnecting(false);
+      if (connectingTimeout) clearTimeout(connectingTimeout);
     };
     
     // Listen for ClickZone clicks
@@ -142,6 +151,7 @@ export default function HeroScene() {
       document.removeEventListener('squatch-button-clicked', handleButtonClick);
       document.removeEventListener('click', handleAnyClick);
       clearInterval(checkForSimliVideo);
+      if (connectingTimeout) clearTimeout(connectingTimeout);
     };
   }, []);
 
@@ -321,17 +331,6 @@ export default function HeroScene() {
         </div>
       )}
 
-      {/* TEST: Manual trigger button for debugging */}
-      <button 
-        onClick={() => {
-          console.log('TEST: Manual trigger clicked');
-          setIsConnecting(!isConnecting);
-        }}
-        className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-[2000]"
-      >
-        Toggle Spinner
-      </button>
-
       {/* Instruction text - shows initially, positioned near red button */}
       {showInstructions && !isConnecting && (
         <div 
@@ -355,13 +354,13 @@ export default function HeroScene() {
         </div>
       )}
 
-      {/* Connecting message - shows while Simli is loading, positioned below device */}
+      {/* Connecting message - shows while Simli is loading, positioned higher */}
       {isConnecting && (
         <div 
           className="fixed pointer-events-none"
           style={{
             left: "50%",
-            bottom: "15%",
+            bottom: "25%",
             transform: "translateX(-50%)",
             textAlign: "center",
             maxWidth: "90%",
