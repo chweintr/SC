@@ -8,6 +8,8 @@ import ClickZone from "./ClickZone";
 export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  const [showInstructions, setShowInstructions] = React.useState(true);
   const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
   
   React.useEffect(() => {
@@ -77,6 +79,48 @@ export default function HeroScene() {
         document.addEventListener('touchstart', tryPlay, { once: true });
       });
     }
+  }, []);
+
+  // Random connecting messages for variety
+  const connectingMessages = [
+    "Hang tight, Squatch is looking for the unmute button...",
+    "Squatch is shaking off the cobwebs...",
+    "Waking up the big guy...",
+    "Squatch is emerging from the forest...",
+    "Getting Squatch on the line..."
+  ];
+  
+  const [connectingMessage] = React.useState(() => 
+    connectingMessages[Math.floor(Math.random() * connectingMessages.length)]
+  );
+
+  // Listen for button clicks and Simli state changes
+  React.useEffect(() => {
+    const handleButtonClick = () => {
+      setShowInstructions(false);
+      setIsConnecting(true);
+    };
+    
+    const handleSimliStart = () => {
+      setIsConnecting(false);
+    };
+    
+    // Listen for ClickZone clicks
+    document.addEventListener('squatch-button-clicked', handleButtonClick);
+    
+    // Listen for Simli video stream starting
+    const checkForSimliVideo = setInterval(() => {
+      const simliVideo = document.querySelector('simli-widget video[srcObject]');
+      if (simliVideo) {
+        handleSimliStart();
+        clearInterval(checkForSimliVideo);
+      }
+    }, 500);
+    
+    return () => {
+      document.removeEventListener('squatch-button-clicked', handleButtonClick);
+      clearInterval(checkForSimliVideo);
+    };
   }, []);
 
   // Start ambient sounds when component mounts
@@ -223,6 +267,53 @@ export default function HeroScene() {
       <img src="/Overlay_9.png" alt=""
            className="fixed inset-0 z-20 pointer-events-none"
            style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+
+      {/* Instruction text - shows initially, positioned below device frame */}
+      {showInstructions && !isConnecting && (
+        <div 
+          className="fixed z-30 pointer-events-none"
+          style={{
+            left: "50%",
+            bottom: "15%",
+            transform: "translateX(-50%)",
+            textAlign: "center"
+          }}
+        >
+          <p className="text-white text-lg md:text-2xl font-bold px-4"
+             style={{
+               textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)",
+               fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+               letterSpacing: "0.1em"
+             }}>
+            PRESS TO CALL
+          </p>
+        </div>
+      )}
+
+      {/* Connecting message - shows while Simli is loading, positioned below device */}
+      {isConnecting && (
+        <div 
+          className="fixed z-30 pointer-events-none"
+          style={{
+            left: "50%",
+            bottom: "15%",
+            transform: "translateX(-50%)",
+            textAlign: "center",
+            maxWidth: "90%"
+          }}
+        >
+          <p className="text-white text-base md:text-lg font-bold px-6 py-3 rounded-lg"
+             style={{
+               background: "rgba(0,0,0,0.8)",
+               textShadow: "0 2px 4px rgba(0,0,0,0.9)",
+               fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+               letterSpacing: "0.05em",
+               animation: "pulse 2s ease-in-out infinite"
+             }}>
+            {connectingMessage}
+          </p>
+        </div>
+      )}
 
       {/* Ambient forest sounds */}
       <audio 

@@ -16,6 +16,10 @@ export default function ClickZone() {
 
   const handleClick = () => {
     console.log('ClickZone clicked!');
+    
+    // Dispatch event to notify HeroScene
+    document.dispatchEvent(new CustomEvent('squatch-button-clicked'));
+    
     // Find the actual Simli button and click it
     const simliWidget = document.querySelector('simli-widget');
     console.log('Found simli-widget:', !!simliWidget);
