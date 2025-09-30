@@ -97,16 +97,37 @@ export default function HeroScene() {
   // Listen for button clicks and Simli state changes
   React.useEffect(() => {
     const handleButtonClick = () => {
+      console.log('🔴 Button clicked! Setting connecting state...');
       setShowInstructions(false);
       setIsConnecting(true);
     };
     
     const handleSimliStart = () => {
+      console.log('🟢 Simli started! Hiding connecting state...');
       setIsConnecting(false);
     };
     
     // Listen for ClickZone clicks
     document.addEventListener('squatch-button-clicked', handleButtonClick);
+    
+    // ALSO listen for ANY clicks as backup
+    const handleAnyClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      console.log('Click detected on:', target);
+      // If clicking in the button area, trigger connecting
+      const rect = document.body.getBoundingClientRect();
+      const x = (e.clientX / rect.width) * 100;
+      const y = (e.clientY / rect.height) * 100;
+      console.log(`Click at: ${x.toFixed(0)}% x ${y.toFixed(0)}%`);
+      
+      // Red button is around 75% x, 61% y
+      if (x > 65 && x < 85 && y > 50 && y < 70) {
+        console.log('🔴 Click in button area detected!');
+        handleButtonClick();
+      }
+    };
+    
+    document.addEventListener('click', handleAnyClick);
     
     // Listen for Simli video stream starting
     const checkForSimliVideo = setInterval(() => {
@@ -119,6 +140,7 @@ export default function HeroScene() {
     
     return () => {
       document.removeEventListener('squatch-button-clicked', handleButtonClick);
+      document.removeEventListener('click', handleAnyClick);
       clearInterval(checkForSimliVideo);
     };
   }, []);
@@ -298,6 +320,17 @@ export default function HeroScene() {
           `}</style>
         </div>
       )}
+
+      {/* TEST: Manual trigger button for debugging */}
+      <button 
+        onClick={() => {
+          console.log('TEST: Manual trigger clicked');
+          setIsConnecting(!isConnecting);
+        }}
+        className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-[2000]"
+      >
+        Toggle Spinner
+      </button>
 
       {/* Instruction text - shows initially, positioned near red button */}
       {showInstructions && !isConnecting && (
