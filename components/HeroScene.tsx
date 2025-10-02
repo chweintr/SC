@@ -81,30 +81,25 @@ export default function HeroScene() {
     }
   }, []);
 
-  // Simple message on click - no complex spinner logic
+  // Listen for ClickZone events (it handles the actual Simli triggering)
   React.useEffect(() => {
-    const handleAnyClick = (e: MouseEvent) => {
-      const rect = document.body.getBoundingClientRect();
-      const x = (e.clientX / rect.width) * 100;
-      const y = (e.clientY / rect.height) * 100;
+    const handleButtonClick = () => {
+      console.log('🔴 Button clicked - showing message');
+      setShowInstructions(false);
+      setIsConnecting(true);
       
-      // Red button is around 75% x, 61% y
-      if (x > 65 && x < 85 && y > 50 && y < 70) {
-        console.log('🔴 Button clicked - showing message');
-        setShowInstructions(false);
-        setIsConnecting(true);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-          setIsConnecting(false);
-        }, 5000);
-      }
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        console.log('⏰ Message timeout - hiding');
+        setIsConnecting(false);
+      }, 5000);
     };
     
-    document.addEventListener('click', handleAnyClick);
+    // Listen for the custom event from ClickZone
+    document.addEventListener('squatch-button-clicked', handleButtonClick);
     
     return () => {
-      document.removeEventListener('click', handleAnyClick);
+      document.removeEventListener('squatch-button-clicked', handleButtonClick);
     };
   }, []);
 
