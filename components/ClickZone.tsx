@@ -2,18 +2,6 @@
 import * as React from "react";
 
 export default function ClickZone() {
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   const handleClick = () => {
     console.log('ClickZone clicked!');
     
@@ -45,8 +33,6 @@ export default function ClickZone() {
       console.log('simli-widget not found');
     }
   };
-
-  if (!isMobile) return null;
 
   return (
     <div 
