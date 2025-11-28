@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  createdAt DateTime @default(now())
+  conversations Conversation[]
+  usages     Usage[]
+  receipts   Receipt[]
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tokenIn     Int      @default(0)
+  tokenOut    Int      @default(0)
+  ttsSeconds  Int      @default(0)
+  messages    Message[]
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  text           String
+  tokenIn        Int      @default(0)
+  tokenOut       Int      @default(0)
+  createdAt      DateTime @default(now())
+  @@index([conversationId, createdAt])
+}
+
+model Usage {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime
+  tokensIn   Int      @default(0)
+  tokensOut  Int      @default(0)
+  ttsSeconds Int      @default(0)
+  @@unique([userId, date])
+  @@index([date])
+}
+
+model Receipt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String
+  productId String
+  status    String
+  rawReceipt Json
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}

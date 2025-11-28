@@ -1,0 +1,6 @@
+name: squatch-agent
+python_version: "3.11"
+entry_point: main:entrypoint
+api_key: ${LIVEKIT_API_KEY}
+api_secret: ${LIVEKIT_API_SECRET}
+ws_url: ${LIVEKIT_URL}

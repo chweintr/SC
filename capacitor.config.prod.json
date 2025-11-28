@@ -1,0 +1,17 @@
+{
+  "appId": "com.calebweintraub.squatchchat",
+  "appName": "SquatchChat",
+  "webDir": "out",
+  "server": {
+    "url": "https://sc-production.up.railway.app"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

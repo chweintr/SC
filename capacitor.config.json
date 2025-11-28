@@ -1,0 +1,19 @@
+{
+  "appId": "com.squatchchat.app",
+  "appName": "SquatchChat",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https",
+    "hostname": "squatchchat.app"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
