@@ -190,8 +190,11 @@ export default function HeroScene() {
       {/* MAIN CONTAINER: Centers the 16:9 content in the viewport */}
       <div className="fixed inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden">
 
-        {/* ASPECT RATIO CONTAINER: Forces 16:9 and fits within viewport */}
-        <div className="relative w-full aspect-video max-h-full max-w-full shadow-2xl">
+        {/* ASPECT RATIO CONTAINER: 
+            Mobile: Full screen (vertical/portrait)
+            Desktop: Forces 16:9 and fits within viewport 
+        */}
+        <div className="relative w-full h-full md:aspect-video md:h-auto md:max-h-full md:max-w-full shadow-2xl">
 
           {/* 1. Background Video */}
           <video
@@ -210,11 +213,12 @@ export default function HeroScene() {
           {/* These % values are now constant relative to the overlay image */}
           <div className="absolute z-10 overflow-hidden rounded-[30px]"
             style={{
-              left: "50%",
-              top: "50%",
-              width: "27%",   // Relative to container width
+              left: widgetDimensions.left,
+              top: widgetDimensions.top,
+              width: widgetDimensions.size,   // Relative to container width
               aspectRatio: "1/1", // Keep it square
               transform: "translate(-50%, -50%)",
+              borderRadius: widgetDimensions.radius,
             }}>
             <SimliSquare active={isChatActive} />
           </div>
