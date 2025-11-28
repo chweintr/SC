@@ -53,7 +53,7 @@ export default function SimliSquare({ active }: { active: boolean }) {
 
   return (
     <LiveKitRoom
-      video={true}
+      video={false}
       audio={true}
       token={token}
       serverUrl={serverUrl}
