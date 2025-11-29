@@ -40,15 +40,11 @@ export default function SimliSquare({ active }: { active: boolean }) {
   }, [active, token]);
 
   if (!active) {
-    return <div className="w-full h-full bg-black/50" />;
+    return null;
   }
 
   if (!token || !serverUrl) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-white">
-        <div className="animate-pulse">Connecting...</div>
-      </div>
-    );
+    return null; // Transparent while connecting
   }
 
   return (
@@ -76,11 +72,7 @@ function AgentVideo() {
   const videoTrack = tracks.find(t => t.source === Track.Source.Camera);
 
   if (!videoTrack) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-black/50">
-        <p className="text-white font-bold animate-pulse">Waiting for Squatch...</p>
-      </div>
-    );
+    return null; // Transparent while waiting for video track
   }
 
   return (

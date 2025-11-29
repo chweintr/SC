@@ -219,7 +219,20 @@ export default function HeroScene() {
               transform: "translate(-50%, -50%)",
               borderRadius: widgetDimensions.radius,
             }}>
-            <SimliSquare active={isChatActive} />
+            {/* Idle Video (Looping Squatch) - Always plays, visible when Simli is transparent */}
+            <video
+              src="/squatch-idle.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            {/* Simli Agent - Overlays the idle video when active and ready */}
+            <div className="absolute inset-0 w-full h-full z-10">
+              <SimliSquare active={isChatActive} />
+            </div>
           </div>
 
           {/* 3. Overlay Image - Covers the video perfectly */}
