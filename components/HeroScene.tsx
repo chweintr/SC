@@ -8,6 +8,7 @@ import ClickZone from "./ClickZone";
 export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
+  const [isChatActive, setIsChatActive] = React.useState(false);
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(true);
   const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
@@ -29,8 +30,8 @@ export default function HeroScene() {
     // Moving down to better fit in the lower part of the frame
     if (screenSize.width < 640) { // Mobile
       return {
-        size: "85vw",  // Reduced from 90vw for better button visibility
-        top: "52%",    // Moved down to better align with frame
+        size: "90vw",  // Increased to 90vw to fill the frame width
+        top: "50%",    // Centered vertically
         left: "50%",
         radius: "15px"
       };
@@ -87,8 +88,9 @@ export default function HeroScene() {
       console.log('🔴 Button clicked - showing message');
       setShowInstructions(false);
       setIsConnecting(true);
+      setIsChatActive(true); // Start the chat
 
-      // Auto-hide after 5 seconds
+      // Auto-hide "Connecting" message after 5 seconds
       setTimeout(() => {
         console.log('⏰ Message timeout - hiding');
         setIsConnecting(false);
@@ -141,6 +143,11 @@ export default function HeroScene() {
     }, 1000);
   }, []);
 
+  const handleDisconnect = () => {
+    setIsChatActive(false);
+    setShowInstructions(true);
+  };
+
   return (
     <>
       {/* Debug Overlay - add ?debug=true to see */}
@@ -150,7 +157,7 @@ export default function HeroScene() {
       <MobileSoundToggle />
 
       {/* Click Zone for red button - highest layer */}
-      <ClickZone />
+      {!isChatActive && <ClickZone />}
 
       {/* App Title - Fixed to viewport top */}
       <div className="fixed top-8 left-0 right-0 z-30 flex justify-center pointer-events-none">
@@ -183,8 +190,11 @@ export default function HeroScene() {
       {/* MAIN CONTAINER: Centers the 16:9 content in the viewport */}
       <div className="fixed inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden">
 
-        {/* ASPECT RATIO CONTAINER: Forces 16:9 and fits within viewport */}
-        <div className="relative w-full aspect-video max-h-full max-w-full shadow-2xl">
+        {/* ASPECT RATIO CONTAINER: 
+            Mobile: Full screen (vertical/portrait)
+            Desktop: Forces 16:9 and fits within viewport 
+        */}
+        <div className="relative w-full h-full md:aspect-video md:h-auto md:max-h-full md:max-w-full shadow-2xl">
 
           {/* 1. Background Video */}
           <video
@@ -200,16 +210,16 @@ export default function HeroScene() {
           </video>
 
           {/* 2. Simli Widget (The Face) - Positioned relative to the 16:9 frame */}
-          {/* These % values are now constant relative to the overlay image */}
           <div className="absolute z-10 overflow-hidden rounded-[30px]"
             style={{
-              left: "50%",
-              top: "50%",
-              width: "27%",   // Relative to container width
+              left: widgetDimensions.left,
+              top: widgetDimensions.top,
+              width: widgetDimensions.size,
               aspectRatio: "1/1", // Keep it square
               transform: "translate(-50%, -50%)",
+              borderRadius: widgetDimensions.radius,
             }}>
-            <SimliSquare />
+            <SimliSquare active={isChatActive} />
           </div>
 
           {/* 3. Overlay Image - Covers the video perfectly */}
@@ -261,6 +271,33 @@ export default function HeroScene() {
                 }}>
                 PRESS RED<br />BUTTON
               </p>
+            </div>
+          )}
+
+          {/* Disconnect Button - Replaces Instructions when Active */}
+          {isChatActive && !isConnecting && (
+            <div
+              className="absolute z-[1000]"
+              style={{
+                left: "75%",
+                top: "70%",
+                transform: "translateX(-50%)",
+                textAlign: "center",
+              }}
+            >
+              <button
+                onClick={handleDisconnect}
+                className="text-white text-base md:text-xl font-bold px-6 py-2 rounded-full transition-transform active:scale-95 hover:bg-red-900/50"
+                style={{
+                  background: "rgba(220, 38, 38, 0.8)", // Red background
+                  border: "2px solid rgba(255, 255, 255, 0.5)",
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                  fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+                  letterSpacing: "0.1em",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
+                }}>
+                DISMISS
+              </button>
             </div>
           )}
         </div>
