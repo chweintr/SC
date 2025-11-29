@@ -10,45 +10,28 @@ import {
 import { Track } from "livekit-client";
 import "@livekit/components-styles";
 
-export default function SimliSquare({ active }: { active: boolean }) {
+export default function SimliSquare() {
   const [token, setToken] = React.useState("");
   const [serverUrl, setServerUrl] = React.useState("");
   const [isConnecting, setIsConnecting] = React.useState(false);
 
-  // Fetch token when active becomes true
+  // Fetch token on mount
   React.useEffect(() => {
-    if (active && !token) {
-      setIsConnecting(true);
-      (async () => {
-        try {
-          // Default to paid tier for now as requested
-          const resp = await fetch("/api/token?tier=paid");
-          const data = await resp.json();
-          setToken(data.token);
-          setServerUrl(data.serverUrl);
-        } catch (e) {
-          console.error("Failed to fetch token:", e);
-          setIsConnecting(false);
-        }
-      })();
-    } else if (!active) {
-      // Reset state when deactivated
-      setToken("");
-      setServerUrl("");
-      setIsConnecting(false);
-    }
-  }, [active, token]);
-
-  if (!active) {
-    return <div className="w-full h-full bg-black/50" />;
-  }
+    (async () => {
+      try {
+        // Default to paid tier for now as requested
+        const resp = await fetch("/api/token?tier=paid");
+        const data = await resp.json();
+        setToken(data.token);
+        setServerUrl(data.serverUrl);
+      } catch (e) {
+        console.error("Failed to fetch token:", e);
+      }
+    })();
+  }, []);
 
   if (!token || !serverUrl) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-white">
-        <div className="animate-pulse">Connecting...</div>
-      </div>
-    );
+    return <div className="w-full h-full flex items-center justify-center text-white">Loading...</div>;
   }
 
   return (
@@ -87,7 +70,7 @@ function AgentVideo() {
     <VideoTrack
       trackRef={videoTrack}
       className="w-full h-full object-cover"
-      // @ts-ignore - playsInline is passed to the underlying video element
+      // @ts-ignore
       playsInline={true}
     />
   );

@@ -8,7 +8,6 @@ import ClickZone from "./ClickZone";
 export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
-  const [isChatActive, setIsChatActive] = React.useState(false);
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(true);
   const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
@@ -88,9 +87,8 @@ export default function HeroScene() {
       console.log('🔴 Button clicked - showing message');
       setShowInstructions(false);
       setIsConnecting(true);
-      setIsChatActive(true); // Start the chat
 
-      // Auto-hide "Connecting" message after 5 seconds
+      // Auto-hide after 5 seconds
       setTimeout(() => {
         console.log('⏰ Message timeout - hiding');
         setIsConnecting(false);
@@ -143,11 +141,6 @@ export default function HeroScene() {
     }, 1000);
   }, []);
 
-  const handleDisconnect = () => {
-    setIsChatActive(false);
-    setShowInstructions(true);
-  };
-
   return (
     <>
       {/* Debug Overlay - add ?debug=true to see */}
@@ -157,7 +150,7 @@ export default function HeroScene() {
       <MobileSoundToggle />
 
       {/* Click Zone for red button - highest layer */}
-      {!isChatActive && <ClickZone />}
+      <ClickZone />
 
       {/* App Title - Fixed to viewport top */}
       <div className="fixed top-8 left-0 right-0 z-30 flex justify-center pointer-events-none">
@@ -216,7 +209,7 @@ export default function HeroScene() {
               aspectRatio: "1/1", // Keep it square
               transform: "translate(-50%, -50%)",
             }}>
-            <SimliSquare active={isChatActive} />
+            <SimliSquare />
           </div>
 
           {/* 3. Overlay Image - Covers the video perfectly */}
@@ -270,33 +263,6 @@ export default function HeroScene() {
               </p>
             </div>
           )}
-
-          {/* Disconnect Button - Replaces Instructions when Active */}
-          {isChatActive && !isConnecting && (
-            <div
-              className="absolute z-[1000]"
-              style={{
-                left: "75%",
-                top: "70%",
-                transform: "translateX(-50%)",
-                textAlign: "center",
-              }}
-            >
-              <button
-                onClick={handleDisconnect}
-                className="text-white text-base md:text-xl font-bold px-6 py-2 rounded-full transition-transform active:scale-95 hover:bg-red-900/50"
-                style={{
-                  background: "rgba(220, 38, 38, 0.8)", // Red background
-                  border: "2px solid rgba(255, 255, 255, 0.5)",
-                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                  fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-                  letterSpacing: "0.1em",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
-                }}>
-                END CHAT
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -313,4 +279,4 @@ export default function HeroScene() {
       </audio>
     </>
   );
-}// Force rebuild at Wed Sep 10 18:49:59 EDT 2025
+}
