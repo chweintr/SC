@@ -82,28 +82,26 @@ export default function HeroScene() {
     }
   }, []);
 
-  // Listen for ClickZone events (it handles the actual Simli triggering)
-  React.useEffect(() => {
-    const handleButtonClick = () => {
-      console.log('🔴 Button clicked - showing message');
+  // Toggle Chat State (Connect/Disconnect)
+  const handleToggleChat = () => {
+    if (isChatActive) {
+      // Disconnect
+      console.log('🔴 Button clicked - Disconnecting');
+      setIsChatActive(false);
+      setShowInstructions(true);
+    } else {
+      // Connect
+      console.log('🟢 Button clicked - Connecting');
       setShowInstructions(false);
       setIsConnecting(true);
-      setIsChatActive(true); // Start the chat
+      setIsChatActive(true);
 
       // Auto-hide "Connecting" message after 5 seconds
       setTimeout(() => {
-        console.log('⏰ Message timeout - hiding');
         setIsConnecting(false);
       }, 5000);
-    };
-
-    // Listen for the custom event from ClickZone
-    document.addEventListener('squatch-button-clicked', handleButtonClick);
-
-    return () => {
-      document.removeEventListener('squatch-button-clicked', handleButtonClick);
-    };
-  }, []);
+    }
+  };
 
   // Start ambient sounds when component mounts
   React.useEffect(() => {
@@ -155,9 +153,6 @@ export default function HeroScene() {
 
       {/* Mobile Sound Toggle */}
       <MobileSoundToggle />
-
-      {/* Click Zone for red button - highest layer */}
-      {!isChatActive && <ClickZone />}
 
       {/* App Title - Fixed to viewport top */}
       <div className="fixed top-8 left-0 right-0 z-30 flex justify-center pointer-events-none">
@@ -235,40 +230,49 @@ export default function HeroScene() {
             </div>
           </div>
 
-          {/* 3. Overlay Image - Covers the video perfectly */}
-          <img src="/Overlay_9.png" alt=""
-            className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+          {/* 4. Red Button Interaction Zone - Always clickable to Toggle On/Off */}
+          <button
+            onClick={handleToggleChat}
+            className="absolute z-50 rounded-full cursor-pointer transition-opacity hover:bg-white/10 active:bg-white/20"
             style={{
-              filter: "blur(0.5px)"
-            }} />
+              left: "72%",    // Aligned with the visual red button
+              top: "66%",     // Aligned with the visual red button
+              width: "18%",   // Responsive width
+              aspectRatio: "1/1",
+              transform: "translate(-50%, -50%)",
+              // border: "2px dashed rgba(255, 0, 0, 0.5)", // Uncomment to debug position
+            }}
+            aria-label={isChatActive ? "End Conversation" : "Start Conversation"}
+          />
 
           {/* Connecting Message */}
           {isConnecting && (
             <div
-              className="absolute pointer-events-none z-[9999]"
+              className="absolute pointer-events-none z-[40]"
               style={{
-                left: "75%",
-                top: "72%",
-                transform: "translateX(-50%)",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
                 textAlign: "center",
               }}
             >
-              <p className="text-white text-sm md:text-base font-bold px-4 py-2 rounded-lg"
+              <p className="text-white text-lg md:text-xl font-bold px-6 py-3 rounded-xl backdrop-blur-md"
                 style={{
-                  background: "rgba(0,0,0,0.8)",
+                  background: "rgba(0,0,0,0.6)",
                   textShadow: "0 2px 4px rgba(0,0,0,0.9)",
                   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-                  letterSpacing: "0.05em"
+                  letterSpacing: "0.05em",
+                  border: "1px solid rgba(255,255,255,0.2)"
                 }}>
-                Hang tight...<br />Squatch is connecting
+                CONNECTING...
               </p>
             </div>
           )}
 
-          {/* Instructions */}
-          {showInstructions && !isConnecting && (
+          {/* Instructions - Only show when NOT active and NOT connecting */}
+          {showInstructions && !isChatActive && !isConnecting && (
             <div
-              className="absolute pointer-events-none z-[1000]"
+              className="absolute pointer-events-none z-[40]"
               style={{
                 left: "75%",
                 top: "70%",
@@ -276,7 +280,7 @@ export default function HeroScene() {
                 textAlign: "center",
               }}
             >
-              <p className="text-white text-base md:text-xl font-bold px-4"
+              <p className="text-white text-base md:text-xl font-bold px-4 animate-pulse"
                 style={{
                   textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)",
                   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
@@ -284,33 +288,6 @@ export default function HeroScene() {
                 }}>
                 PRESS RED<br />BUTTON
               </p>
-            </div>
-          )}
-
-          {/* Disconnect Button - Replaces Instructions when Active */}
-          {isChatActive && !isConnecting && (
-            <div
-              className="absolute z-[1000]"
-              style={{
-                left: "75%",
-                top: "70%",
-                transform: "translateX(-50%)",
-                textAlign: "center",
-              }}
-            >
-              <button
-                onClick={handleDisconnect}
-                className="text-white text-base md:text-xl font-bold px-6 py-2 rounded-full transition-transform active:scale-95 hover:bg-red-900/50"
-                style={{
-                  background: "rgba(220, 38, 38, 0.8)", // Red background
-                  border: "2px solid rgba(255, 255, 255, 0.5)",
-                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                  fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-                  letterSpacing: "0.1em",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)"
-                }}>
-                DISMISS
-              </button>
             </div>
           )}
         </div>
