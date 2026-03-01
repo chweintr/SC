@@ -2,11 +2,20 @@
 
 ## Project Structure & Module Organization
 - `app/` holds Next.js routes, layouts, and server actions; start with `app/page.tsx` and keep route-specific logic colocated.
-- `components/`, `lib/`, and `types/` provide reusable UI, utilities, and shared typing for both web and agent services.
-- `prisma/` defines the data model and generates a typed client in `app/generated/prisma`; update both when schema changes.
-- `kb/` contains persona and factual markdown that the LiveKit agent loads; edit with concise, first-person entries.
-- `agent/` is the Python LiveKit worker (see `agent/README.md`); keep virtualenv-only artifacts inside `agent/venv/`.
-- Static assets live in `Assets/` and `public/`; use `public/` for files referenced by the Next app at runtime.
+- `components/`, `lib/`, and `types/` hold shared UI, utilities, and typings used across the web app and widget integration.
+- `prisma/` owns the data model; generated client output lives in `app/generated/prisma` and must be updated with schema changes.
+- `agent/` is a Python LiveKit worker for fallback scenarios (see `agent/README.md`); keep local virtualenv artifacts inside `agent/venv/`.
+- `kb/` stores persona and factual markdown consumed by Simli; keep entries concise and first-person.
+- Static assets live in `public/` (runtime web assets) and `Assets/` (design/source files). Native packaging lives under `ios/`.
+
+## Product Goals & Platform Targets
+- Primary goal: a working experience across web browsers and device surfaces; treat responsive layout and touch input as first-class.
+- Store readiness: keep iOS packaging under `ios/` current so App Store submission stays possible.
+- Future scope: the app may expand beyond Sasquatch to multiple cryptids; keep content and UI extensible.
+
+## Content & Lore
+- Add or update cryptid profiles in `kb/` and keep each entry self-contained.
+- If adding new cryptids, mirror naming patterns already in `kb/` and document how the UI should select between them.
 
 ## Build, Test, and Development Commands
 - `npm run dev` starts the Turbopack dev server on port 3000.
@@ -14,12 +23,14 @@
 - `npm run lint` runs the Next.js ESLint bundle; fix findings before sending reviews.
 - `npm run prisma:generate`, `npm run prisma:migrate`, and `npm run prisma:deploy` manage schema changes; pair schema edits with updated generated client.
 - `npm run seed` executes `scripts/seed.ts` against the database.
-- Agent workflows: `python main.py dev` for local runs (after activating `agent/venv/`), `livekit-cli cloud agent deploy` to ship updates, and `npm run ios` to refresh the Capacitor shell.
+- Simli widget workflows live in `SIMLI_INTEGRATION.md`; use it as the source of truth.
+- Optional LiveKit fallback: `python main.py dev` (after activating `agent/venv/`) and `livekit-cli cloud agent deploy`.
+- `npm run ios` refreshes the Capacitor shell.
 
 ## Coding Style & Naming Conventions
 - TypeScript and React components should stay strongly typed and use functional components with hooks.
 - Follow ESLint guidance (Next core-web-vitals); match existing two-space indentation and PascalCase component filenames.
-- Keep environment config in `.env.local` or Railway variables; never commit secrets.
+- Configuration belongs in Railway variables; `.env.local` is only for local dev and must never be committed.
 
 ## Testing Guidelines
 - Automated tests are not yet established; manually verify UI flows and agent interactions before review.
@@ -31,5 +42,6 @@
 - Every PR should summarize scope, list validation steps (`npm run lint`, manual QA), and note schema or env updates; add screenshots for UI-facing changes and link related tickets.
 
 ## Security & Configuration Tips
-- Required secrets include `DATABASE_URL` for Prisma and LiveKit/OpenAI/Deepgram/ElevenLabs keys for the agent; store them via Railway or local `.env`.
-- Check `agent/livekit.toml` and `agent/livekit.yaml` when altering deploy settings so CLI deployments stay in sync.
+- Required secrets include `DATABASE_URL`, `SIMLI_API_KEY`, and `SIMLI_AGENT_ID`; store them in Railway.
+- LiveKit/OpenAI/Deepgram/ElevenLabs keys are only needed for the fallback path in `agent/`.
+- Keep `agent/livekit.toml` and `agent/livekit.yaml` aligned only if you enable LiveKit.

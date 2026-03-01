@@ -5,14 +5,17 @@ import MobileSoundToggle from "./MobileSoundToggle";
 import DebugOverlay from "./DebugOverlay";
 import ClickZone from "./ClickZone";
 
+const OVERLAY_ASSET = { width: 1408, height: 736 };
+const WIDGET_OVERLAY = { x: 712, y: 339.5, size: 311, radius: 28 };
+const BUTTON_OVERLAY = { x: 852, y: 526, size: 120 };
+
 export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
-  const [isChatActive, setIsChatActive] = React.useState(false);
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(true);
   const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
-
+  
   React.useEffect(() => {
     const updateSize = () => {
       const width = window.innerWidth;
@@ -25,48 +28,40 @@ export default function HeroScene() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  // Calculate responsive widget size - bigger to fill screen
-  const getWidgetSize = () => {
-    // Moving down to better fit in the lower part of the frame
-    if (screenSize.width < 640) { // Mobile
-      return {
-        size: "90vw",  // Increased to 90vw to fill the frame width
-        top: "50%",    // Centered vertically
-        left: "50%",
-        radius: "15px"
-      };
-    } else if (screenSize.width < 1024) { // Tablet
-      return {
-        size: "41vw",
-        top: "50%",
-        left: "50%",
-        radius: "25px"
-      };
-    } else { // Desktop - keeping as is, looks good
-      return {
-        size: "27vw",
-        top: "50%",
-        left: "50%",
-        radius: "30px"
-      };
+  // Convert source-image coordinates to viewport coordinates using object-fit: cover math.
+  const overlayFrame = React.useMemo(() => {
+    if (!screenSize.width || !screenSize.height) {
+      return { left: 0, top: 0, scale: 1, width: 0, height: 0 };
     }
-  };
+    const scale = Math.max(
+      screenSize.width / OVERLAY_ASSET.width,
+      screenSize.height / OVERLAY_ASSET.height
+    );
+    const width = OVERLAY_ASSET.width * scale;
+    const height = OVERLAY_ASSET.height * scale;
+    const left = (screenSize.width - width) / 2;
+    const top = (screenSize.height - height) / 2;
+    return { left, top, scale, width, height };
+  }, [screenSize.height, screenSize.width]);
 
-  const widgetDimensions = getWidgetSize();
+  const widgetPx = React.useMemo(() => {
+    const centerX = overlayFrame.left + WIDGET_OVERLAY.x * overlayFrame.scale;
+    const centerY = overlayFrame.top + WIDGET_OVERLAY.y * overlayFrame.scale;
+    const size = WIDGET_OVERLAY.size * overlayFrame.scale;
+    const radius = WIDGET_OVERLAY.radius * overlayFrame.scale;
+    return { centerX, centerY, size, radius };
+  }, [overlayFrame]);
 
-  // Override with URL params for quick testing: ?top=30&left=50&size=27
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const top = params.get('top');
-      const left = params.get('left');
-      const size = params.get('size');
+  const buttonPx = React.useMemo(() => {
+    const centerX = overlayFrame.left + BUTTON_OVERLAY.x * overlayFrame.scale;
+    const centerY = overlayFrame.top + BUTTON_OVERLAY.y * overlayFrame.scale;
+    const rawSize = BUTTON_OVERLAY.size * overlayFrame.scale;
+    const size = Math.max(74, Math.min(rawSize, 180));
+    return { centerX, centerY, size };
+  }, [overlayFrame]);
 
-      if (top) widgetDimensions.top = `${top}%`;
-      if (left) widgetDimensions.left = `${left}%`;
-      if (size) widgetDimensions.size = `${size}vw`;
-    }
-  }, []);
+  const instructionY = buttonPx.centerY + buttonPx.size * 0.9;
+  const connectingY = buttonPx.centerY + buttonPx.size * 1.15;
 
   // Start background video if autoplay fails
   React.useEffect(() => {
@@ -74,7 +69,7 @@ export default function HeroScene() {
       backgroundVideoRef.current.play().catch(e => {
         console.log("Background video autoplay failed, will play on user interaction");
         const tryPlay = () => {
-          backgroundVideoRef.current?.play().catch(() => { });
+          backgroundVideoRef.current?.play().catch(() => {});
         };
         document.addEventListener('click', tryPlay, { once: true });
         document.addEventListener('touchstart', tryPlay, { once: true });
@@ -82,26 +77,27 @@ export default function HeroScene() {
     }
   }, []);
 
-  // Toggle Chat State (Connect/Disconnect)
-  const handleToggleChat = () => {
-    if (isChatActive) {
-      // Disconnect
-      console.log('🔴 Button clicked - Disconnecting');
-      setIsChatActive(false);
-      setShowInstructions(true);
-    } else {
-      // Connect
-      console.log('🟢 Button clicked - Connecting');
+  // Listen for ClickZone events (it handles the actual Simli triggering)
+  React.useEffect(() => {
+    const handleButtonClick = () => {
+      console.log('🔴 Button clicked - showing message');
       setShowInstructions(false);
       setIsConnecting(true);
-      setIsChatActive(true);
-
-      // Auto-hide "Connecting" message after 5 seconds
+      
+      // Auto-hide after 5 seconds
       setTimeout(() => {
+        console.log('⏰ Message timeout - hiding');
         setIsConnecting(false);
       }, 5000);
-    }
-  };
+    };
+    
+    // Listen for the custom event from ClickZone
+    document.addEventListener('squatch-button-clicked', handleButtonClick);
+    
+    return () => {
+      document.removeEventListener('squatch-button-clicked', handleButtonClick);
+    };
+  }, []);
 
   // Start ambient sounds when component mounts
   React.useEffect(() => {
@@ -122,15 +118,15 @@ export default function HeroScene() {
             const tryPlay = () => {
               audio.play().then(() => {
                 console.log("Audio started after interaction");
-              }).catch(() => { });
+              }).catch(() => {});
             };
-
+            
             document.addEventListener('click', tryPlay, { once: true });
             document.addEventListener('touchstart', tryPlay, { once: true });
             document.addEventListener('keydown', tryPlay, { once: true });
           });
         };
-
+        
         // Check if audio is ready
         if (audio.readyState >= 2) {
           playAudio();
@@ -141,27 +137,22 @@ export default function HeroScene() {
     }, 1000);
   }, []);
 
-  const handleDisconnect = () => {
-    setIsChatActive(false);
-    setShowInstructions(true);
-  };
-
   return (
     <>
-      {/* Debug Overlay - add ?debug=true to see */}
+      {/* Debug Overlay - add ?debug=true to URL to see */}
       <DebugOverlay />
-
+      
       {/* Mobile Sound Toggle */}
       <MobileSoundToggle />
-
-      {/* App Title - Fixed to viewport top */}
-      <div className="fixed top-8 left-0 right-0 z-30 flex justify-center pointer-events-none">
+      
+      {/* App Title */}
+      <div className="fixed top-8 left-0 right-0 z-30 flex justify-center">
         <h1 className="text-5xl md:text-7xl font-black text-white uppercase"
-          style={{
-            fontFamily: "'Bebas Neue', 'Impact', 'Arial Black', sans-serif",
-            letterSpacing: "0.05em",
-            fontWeight: 900,
-            textShadow: `
+            style={{ 
+              fontFamily: "'Bebas Neue', 'Impact', 'Arial Black', sans-serif",
+              letterSpacing: "0.05em",
+              fontWeight: 900,
+              textShadow: `
                 0 2px 0 #0a7e53,
                 0 4px 0 #065f46,
                 0 6px 0 #064e3b,
@@ -169,9 +160,9 @@ export default function HeroScene() {
                 0 10px 20px rgba(0,0,0,0.9),
                 0 0 60px rgba(16,185,129,0.8)
               `,
-            transform: "perspective(300px) rotateY(-5deg)",
-            animation: "titleGlow 3s ease-in-out infinite alternate"
-          }}>
+              transform: "perspective(300px) rotateY(-5deg)",
+              animation: "titleGlow 3s ease-in-out infinite alternate"
+            }}>
           SQUATCHCHAT
         </h1>
         <style jsx>{`
@@ -182,128 +173,171 @@ export default function HeroScene() {
         `}</style>
       </div>
 
-      {/* MAIN CONTAINER: Centers the 16:9 content in the viewport */}
-      <div className="fixed inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden">
+      {/* bottom: full-page 16:9 video */}
+      <video 
+        ref={backgroundVideoRef}
+        className="fixed inset-0 -z-30 h-[100dvh] w-screen object-cover background-video"
+        autoPlay 
+        muted 
+        loop 
+        playsInline
+        preload="auto"
+        onLoadedData={() => {
+          console.log("Background video loaded");
+          // Report to UI if needed
+          window.dispatchEvent(new CustomEvent('videoStatus', { detail: 'loaded' }));
+        }}
+        onError={(e) => {
+          console.error("Background video error:", e);
+          alert(`Video failed to load. Check console for details.`);
+        }}
+        onPlay={() => {
+          console.log("Background video playing");
+          window.dispatchEvent(new CustomEvent('videoStatus', { detail: 'playing' }));
+        }}
+      >
+        <source src="/video/hero_16x9.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-        {/* ASPECT RATIO CONTAINER: 
-            Mobile: Full screen (vertical/portrait)
-            Desktop: Forces 16:9 and fits within viewport 
-        */}
-        <div className="relative w-full h-full md:aspect-video md:h-auto md:max-h-full md:max-w-full shadow-2xl">
-
-          {/* 1. Background Video */}
+      {/* Stage - full viewport so overlay stays full-screen on all surfaces */}
+      <div className="fixed inset-0 z-10 flex items-center justify-center">
+        <div
+          className="relative w-full h-full"
+        >
+          {/* Idle video - plays in mount until Simli starts */}
           <video
-            ref={backgroundVideoRef}
-            className="absolute inset-0 w-full h-full object-cover"
+            id="idle-video"
+            className="absolute z-[5] pointer-events-none"
             autoPlay
             muted
             loop
             playsInline
             preload="auto"
+            style={{
+              left: `${widgetPx.centerX}px`,
+              top: `${widgetPx.centerY}px`,
+              width: `${widgetPx.size}px`,
+              height: `${widgetPx.size}px`,
+              transform: "translate(-50%,-50%)",
+              borderRadius: `${widgetPx.radius}px`,
+              objectFit: "cover",
+            }}
           >
-            <source src="/video/hero_16x9.mp4" type="video/mp4" />
+            <source src="/squatch-idle.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
           </video>
 
-          {/* 2. Simli Widget (The Face) - Positioned relative to the 16:9 frame */}
-          <div className="absolute z-10 overflow-hidden rounded-[30px]"
+          {/* middle: Simli widget - BELOW overlay */}
+          <div
+            className="absolute z-10"
             style={{
-              left: widgetDimensions.left,
-              top: widgetDimensions.top,
-              width: widgetDimensions.size,
-              aspectRatio: "1/1", // Keep it square
-              transform: "translate(-50%, -50%)",
-              borderRadius: widgetDimensions.radius,
-            }}>
-            {/* Idle Video (Looping Squatch) - Always plays, visible when Simli is transparent */}
-            <video
-              src="/squatch-idle.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-
-            {/* Simli Agent - Overlays the idle video when active and ready */}
-            <div className="absolute inset-0 w-full h-full z-10">
-              <SimliSquare active={isChatActive} />
-            </div>
+              left: `${widgetPx.centerX}px`,
+              top: `${widgetPx.centerY}px`,
+              width: `${widgetPx.size}px`,
+              height: `${widgetPx.size}px`,
+              transform: "translate(-50%,-50%)",
+              borderRadius: `${widgetPx.radius}px`,
+              background: "transparent",
+              overflow: "hidden",
+            }}
+          >
+            <SimliSquare />
           </div>
 
-          {/* 4. Red Button Interaction Zone - Always clickable to Toggle On/Off */}
-          <button
-            onClick={handleToggleChat}
-            className="absolute z-50 rounded-full cursor-pointer transition-opacity hover:bg-white/10 active:bg-white/20"
+          {/* top: full-page PNG overlay with transparent window - blurred edges */}
+          <img
+            src="/Overlay_9.png"
+            alt=""
+            className="absolute inset-0 z-20 pointer-events-none"
             style={{
-              left: "72%",    // Aligned with the visual red button
-              top: "66%",     // Aligned with the visual red button
-              width: "18%",   // Responsive width
-              aspectRatio: "1/1",
-              transform: "translate(-50%, -50%)",
-              // border: "2px dashed rgba(255, 0, 0, 0.5)", // Uncomment to debug position
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(1px)",
             }}
-            aria-label={isChatActive ? "End Conversation" : "Start Conversation"}
           />
 
-          {/* Connecting Message */}
+          {/* Click Zone for red button - highest layer */}
+          <ClickZone
+            className="pointer-events-auto"
+            style={{
+              left: `${buttonPx.centerX}px`,
+              top: `${buttonPx.centerY}px`,
+              width: `${buttonPx.size}px`,
+              height: `${buttonPx.size}px`,
+              transform: "translate(-50%, -50%)",
+            }}
+          />
+
+          {/* Simple connecting message near button - shows for 5 seconds */}
           {isConnecting && (
             <div
-              className="absolute pointer-events-none z-[40]"
+              className="absolute pointer-events-none"
               style={{
-                left: "50%",
-                top: "50%",
-                transform: "translate(-50%, -50%)",
+                left: `${buttonPx.centerX}px`,
+                top: `${connectingY}px`,
+                transform: "translate(-50%, 0)",
                 textAlign: "center",
+                zIndex: 9999,
               }}
             >
-              <p className="text-white text-lg md:text-xl font-bold px-6 py-3 rounded-xl backdrop-blur-md"
+              <p
+                className="text-white text-sm md:text-base font-bold px-4 py-2 rounded-lg"
                 style={{
-                  background: "rgba(0,0,0,0.6)",
+                  background: "rgba(0,0,0,0.8)",
                   textShadow: "0 2px 4px rgba(0,0,0,0.9)",
                   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
                   letterSpacing: "0.05em",
-                  border: "1px solid rgba(255,255,255,0.2)"
-                }}>
-                CONNECTING...
+                }}
+              >
+                Hang tight...<br />
+                Squatch is connecting
               </p>
             </div>
           )}
 
-          {/* Instructions - Only show when NOT active and NOT connecting */}
-          {showInstructions && !isChatActive && !isConnecting && (
+          {/* Instruction text - shows initially, positioned near red button */}
+          {showInstructions && !isConnecting && (
             <div
-              className="absolute pointer-events-none z-[40]"
+              className="absolute pointer-events-none"
               style={{
-                left: "75%",
-                top: "70%",
-                transform: "translateX(-50%)",
+                left: `${buttonPx.centerX}px`,
+                top: `${instructionY}px`,
+                transform: "translate(-50%, 0)",
                 textAlign: "center",
+                zIndex: 1000,
               }}
             >
-              <p className="text-white text-base md:text-xl font-bold px-4 animate-pulse"
+              <p
+                className="text-white text-base md:text-xl font-bold px-4"
                 style={{
                   textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)",
                   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-                  letterSpacing: "0.1em"
-                }}>
-                PRESS RED<br />BUTTON
+                  letterSpacing: "0.1em",
+                }}
+              >
+                PRESS RED<br />
+                BUTTON
               </p>
             </div>
           )}
         </div>
       </div>
 
+
       {/* Ambient forest sounds */}
-      <audio
-        id="forest-ambience"
-        loop
+      <audio 
+        id="forest-ambience" 
+        loop 
         autoPlay
-        preload="auto"
-        controls
+        preload="auto" 
+        controls 
         style={{ position: 'fixed', bottom: '10px', right: '10px', zIndex: 100, opacity: 0.3, width: '200px' }}
       >
         <source src="/audio/enchanted-forest.wav" type="audio/wav" />
+        Your browser does not support the audio element.
       </audio>
     </>
   );
-}
+}// Force rebuild at Wed Sep 10 18:49:59 EDT 2025

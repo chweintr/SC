@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const apiKey = process.env.SIMLI_API_KEY;
-  const avatarId = process.env.SIMLI_AVATAR_ID || "c0736bf4-ab63-4795-8983-7a9377c93ecb";
+  const apiKey =
+    process.env.SIMLI_API_KEY ||
+    process.env.SIMLI_APIKEY ||
+    process.env.NEXT_PUBLIC_SIMLI_API_KEY;
+  const avatarId =
+    process.env.SIMLI_AGENT_ID ||
+    process.env.SIMLI_AVATAR_ID ||
+    process.env.NEXT_PUBLIC_SIMLI_AGENT_ID ||
+    process.env.NEXT_PUBLIC_SIMLI_AVATAR_ID ||
+    "c0736bf4-ab63-4795-8983-7a9377c93ecb";
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   // In development, return mock response if API key is missing (for UI development)
@@ -21,38 +29,114 @@ export async function GET(req: NextRequest) {
   }
 
   if (!apiKey || !avatarId) {
-    return NextResponse.json({ error: "missing_env", haveApiKey: !!apiKey, haveAvatarId: !!avatarId }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "missing_env",
+        haveApiKey: !!apiKey,
+        haveAvatarId: !!avatarId,
+        expected: ["SIMLI_API_KEY", "SIMLI_AGENT_ID (or SIMLI_AVATAR_ID)"],
+      },
+      { status: 500 }
+    );
   }
 
   // Must be an Origin value (scheme + host [+ port])
   const origin = req.headers.get("origin") ?? new URL(req.url).origin;
+  const originAllowList = Array.from(
+    new Set([origin, "http://localhost:3000", "https://localhost:8080"])
+  );
 
-  // First try the E2E session token endpoint
-  const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      simliAPIKey: apiKey,
-      avatarID: avatarId
-    }),
-    cache: "no-store",
-  });
+  const tryE2E = async () => {
+    const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        simliAPIKey: apiKey,
+        avatarID: avatarId,
+      }),
+      cache: "no-store",
+    });
+    const text = await upstream.text();
+    return { ok: upstream.ok, status: upstream.status, text, endpoint: "createE2ESessionToken" };
+  };
 
-  const text = await upstream.text();
-  if (!upstream.ok) {
-    return NextResponse.json({ error: "simli_token_error", status: upstream.status, originSent: origin, details: text }, { status: 500 });
+  const tryAutoToken = async () => {
+    const upstream = await fetch("https://api.simli.ai/auto/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        simliAPIKey: apiKey,
+        expiryStamp: Math.floor(Date.now() / 1000) + 1800,
+        originAllowList,
+        createTranscript: true,
+        avatarID: avatarId,
+        agentID: avatarId,
+      }),
+      cache: "no-store",
+    });
+    const text = await upstream.text();
+    return { ok: upstream.ok, status: upstream.status, text, endpoint: "auto/token" };
+  };
+
+  const first = await tryE2E();
+  let response = first;
+  if (!response.ok) {
+    response = await tryAutoToken();
   }
 
-  const data = JSON.parse(text);
-  console.log("Token response from Simli:", data);
-  
-  return NextResponse.json({ 
-    token: data.token || data.session_token || data.sessionToken,
-    avatarid: avatarId,
-    avatarId: avatarId,  // Also include camelCase
-    agentId: avatarId,   // And agentId variants
-    agentid: avatarId
-  }, { 
-    headers: { "Cache-Control": "no-store" } 
-  });
+  if (!response.ok) {
+    return NextResponse.json(
+      {
+        error: "simli_token_error",
+        status: response.status,
+        originSent: origin,
+        endpoint: response.endpoint,
+        details: response.text,
+      },
+      { status: 500 }
+    );
+  }
+
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(response.text);
+  } catch {
+    return NextResponse.json(
+      {
+        error: "simli_token_parse_error",
+        endpoint: response.endpoint,
+        details: response.text,
+      },
+      { status: 500 }
+    );
+  }
+
+  const token = (data.token || data.session_token || data.sessionToken) as string | undefined;
+  const upstreamAgentId = (data.agentid || data.agentId || data.avatarid || data.avatarId) as string | undefined;
+
+  if (!token) {
+    return NextResponse.json(
+      {
+        error: "simli_missing_token",
+        endpoint: response.endpoint,
+        details: data,
+      },
+      { status: 500 }
+    );
+  }
+
+  console.log("Token response from Simli:", { endpoint: response.endpoint });
+
+  return NextResponse.json(
+    {
+      token,
+      avatarid: upstreamAgentId || avatarId,
+      avatarId: upstreamAgentId || avatarId,
+      agentId: upstreamAgentId || avatarId,
+      agentid: upstreamAgentId || avatarId,
+    },
+    {
+      headers: { "Cache-Control": "no-store" },
+    }
+  );
 }
