@@ -297,8 +297,8 @@ export default function HeroScene() {
                   letterSpacing: "0.05em",
                 }}
               >
-                Hang tight...<br />
-                Squatch is connecting
+                LINKING TRAIL-CAM...<br />
+                acquiring signal
               </p>
             </div>
           )}
@@ -323,8 +323,8 @@ export default function HeroScene() {
                   letterSpacing: "0.1em",
                 }}
               >
-                PRESS RED<br />
-                BUTTON
+                TAP RED LENS<br />
+                TO TRANSMIT
               </p>
             </div>
           )}

@@ -61,20 +61,54 @@ function applyShadowStyles(widget: WidgetElement) {
   }
 }
 
+function stripWidgetChrome(widget: WidgetElement) {
+  const shadow = widget.shadowRoot;
+  if (!shadow) return;
+
+  shadow
+    .querySelectorAll(
+      ".controls-wrapper, .control-button, .close-button, .status-container, .simli-logo, .dotted-face"
+    )
+    .forEach((el) => el.remove());
+
+  const container = shadow.querySelector(".widget-container") as HTMLElement | null;
+  if (container) {
+    container.style.display = "block";
+    container.style.width = "100%";
+    container.style.height = "100%";
+    container.style.maxWidth = "100%";
+    container.style.maxHeight = "100%";
+    container.style.background = "transparent";
+  }
+
+  const wrapper = shadow.querySelector(".video-wrapper") as HTMLElement | null;
+  if (wrapper) {
+    wrapper.style.width = "100%";
+    wrapper.style.height = "100%";
+    wrapper.style.maxWidth = "100%";
+    wrapper.style.maxHeight = "100%";
+    wrapper.style.margin = "0";
+    wrapper.style.overflow = "hidden";
+  }
+}
+
 function syncVisualState(widget: WidgetElement, idleVideo: HTMLVideoElement | null) {
   applyShadowStyles(widget);
+  stripWidgetChrome(widget);
   const shadow = widget.shadowRoot;
   if (!shadow || !idleVideo) return;
 
   const simliVideo = shadow.querySelector(".simli-video") as HTMLVideoElement | null;
+  const running = Boolean(widget.isRunning);
   const hasStream =
     !!simliVideo &&
     (!!(simliVideo as HTMLVideoElement & { srcObject?: MediaStream | null }).srcObject ||
       (simliVideo.readyState >= 2 && !simliVideo.paused) ||
       simliVideo.currentTime > 0);
 
-  idleVideo.style.opacity = hasStream ? "0" : "1";
-  idleVideo.style.visibility = hasStream ? "hidden" : "visible";
+  const showIdle = !running || !hasStream;
+  idleVideo.style.opacity = showIdle ? "1" : "0";
+  idleVideo.style.visibility = showIdle ? "visible" : "hidden";
 }
 
 export default function SimliSquare() {
