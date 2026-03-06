@@ -1,411 +1,159 @@
 "use client";
 import * as React from "react";
 
+type WidgetElement = HTMLElement & {
+  shadowRoot?: ShadowRoot | null;
+  isRunning?: boolean;
+};
+
+function applyShadowStyles(widget: WidgetElement) {
+  const shadow = widget.shadowRoot;
+  if (!shadow) return;
+
+  if (!shadow.getElementById("squatch-widget-style")) {
+    const style = document.createElement("style");
+    style.id = "squatch-widget-style";
+    style.textContent = `
+      :host {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .widget-container,
+      .video-wrapper {
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        aspect-ratio: 1 / 1 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        background: transparent !important;
+        border: none !important;
+      }
+      .controls-wrapper,
+      .control-button,
+      .close-button,
+      .status-container,
+      .simli-logo {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      .dotted-face {
+        display: none !important;
+      }
+      .simli-video {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        background: transparent !important;
+      }
+      audio {
+        display: none !important;
+      }
+    `;
+    shadow.appendChild(style);
+  }
+}
+
+function syncVisualState(widget: WidgetElement, idleVideo: HTMLVideoElement | null) {
+  applyShadowStyles(widget);
+  const shadow = widget.shadowRoot;
+  if (!shadow || !idleVideo) return;
+
+  const simliVideo = shadow.querySelector(".simli-video") as HTMLVideoElement | null;
+  const hasStream =
+    !!simliVideo &&
+    (!!(simliVideo as HTMLVideoElement & { srcObject?: MediaStream | null }).srcObject ||
+      (simliVideo.readyState >= 2 && !simliVideo.paused) ||
+      simliVideo.currentTime > 0);
+
+  idleVideo.style.opacity = hasStream ? "0" : "1";
+  idleVideo.style.visibility = hasStream ? "hidden" : "visible";
+}
+
 export default function SimliSquare() {
   const hostRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    (async () => {
-      console.log("SimliSquare: Fetching token...");
+    let widget: WidgetElement | null = null;
+    let intervalId: number | null = null;
+    let shadowObserver: MutationObserver | null = null;
+    let hostObserver: MutationObserver | null = null;
+
+    const idleVideo = document.getElementById("idle-video") as HTMLVideoElement | null;
+
+    const mount = async () => {
       const r = await fetch("/api/simli/token", { cache: "no-store" });
-      if (!r.ok) { 
-        console.error("Token error", await r.text()); 
-        return; 
+      if (!r.ok) {
+        console.error("Token error", await r.text());
+        return;
       }
-      
+
       const responseData = await r.json();
       const { token, avatarid, _isMock } = responseData;
+      if (!token || _isMock) return;
 
-      console.log("SimliSquare: Got token and avatar ID:", avatarid);
-      console.log("SimliSquare: Full response:", { token: token?.substring(0, 20) + '...', avatarid, isMock: _isMock });
+      widget = document.createElement("simli-widget") as WidgetElement;
+      (widget as unknown as Record<string, unknown>).token = token;
+      (widget as unknown as Record<string, unknown>).avatarid = avatarid;
+      (widget as unknown as Record<string, unknown>).agentid = avatarid;
+      (widget as unknown as Record<string, unknown>).overlay = false;
 
-      // In development with mock token, don't show anything (let idle video play through)
-      if (_isMock) {
-        console.log("SimliSquare: Using mock token for development - showing nothing");
-        return; // Don't create any widget, let idle video show through
-      }
+      widget.setAttribute("token", token);
+      widget.setAttribute("avatarid", avatarid);
+      widget.setAttribute("agentid", avatarid);
+      widget.setAttribute("overlay", "false");
+      widget.setAttribute("style", "display:block;width:100%;height:100%;background:transparent");
 
-      const el = document.createElement("simli-widget");
-      
-      // Log what we're setting
-      console.log("Setting widget properties:", {
-        token: token?.substring(0, 20) + '...',
-        avatarid: avatarid,
-        tokenType: typeof token,
-        tokenLength: token?.length
-      });
-      
-      // Try different property names the widget might expect
-      (el as any).token = token;
-      (el as any).avatarid = avatarid;
-      (el as any).avatarId = avatarid;  // Try camelCase
-      (el as any).agentId = avatarid;   // Try agentId
-      (el as any).agentid = avatarid;   // Try lowercase
-      (el as any).overlay = false;
-      
-      // Also set as attributes for redundancy
-      el.setAttribute("token", token);
-      el.setAttribute("avatarid", avatarid);
-      el.setAttribute("avatarId", avatarid);
-      el.setAttribute("agentId", avatarid);
-      el.setAttribute("agentid", avatarid);
-      el.setAttribute("overlay", "false");
-      el.setAttribute("style", "display:block;width:100%;height:100%;background:transparent");
-      
-      // Add event listeners to debug
-      el.addEventListener('error', (e) => {
-        console.error("SimliWidget error:", e);
-      });
-      
-      // Hide idle video only when Simli video stream starts
-      // Note: srcObject is a JS property, not an attribute, so we need to poll for it
-      let streamDetected = false;
-
-      const checkForStream = () => {
-        if (streamDetected) return;
-
-        const idleVideo = document.getElementById('idle-video') as HTMLVideoElement;
-        // Find ALL videos in the widget and check their srcObject property
-        const videos = el.querySelectorAll('video');
-
-        for (const video of Array.from(videos)) {
-          const vid = video as HTMLVideoElement;
-          if (vid.srcObject) {
-            console.log("Simli stream detected, hiding idle video");
-            streamDetected = true;
-
-            if (idleVideo) {
-              idleVideo.style.display = 'none';
-            }
-
-            // Apply current mute state to Simli video
-            const isMuted = sessionStorage.getItem('audioMuted') === 'true';
-            if (isMuted) {
-              vid.muted = true;
-              // Also mute any audio elements in the widget
-              const audioElements = el.querySelectorAll('audio');
-              audioElements.forEach(audio => {
-                (audio as HTMLAudioElement).muted = true;
-              });
-            }
-            return;
-          }
-        }
-      };
-
-      // Poll every 500ms for stream (srcObject changes aren't observable via MutationObserver)
-      const streamCheckInterval = setInterval(() => {
-        checkForStream();
-        if (streamDetected) {
-          clearInterval(streamCheckInterval);
-        }
-      }, 500);
-
-      // Also use MutationObserver to catch when video elements are added
-      const observer = new MutationObserver(() => {
-        checkForStream();
-      });
-
-      observer.observe(el, {
-        childList: true,
-        subtree: true
-      });
-
-      // Cleanup interval after 60 seconds to prevent memory leak
-      setTimeout(() => {
-        clearInterval(streamCheckInterval);
-      }, 60000);
-      
-      // Change button text - responsive based on screen size
-      const changeButtonText = () => {
-        const isMobile = window.innerWidth < 768;
-        const buttons = el.querySelectorAll('button');
-        buttons.forEach(button => {
-          if (isMobile) {
-            // Aggressively remove ALL text on mobile
-            button.textContent = '';
-            button.innerHTML = '';
-            // Remove any text from all child elements
-            button.querySelectorAll('*').forEach(child => {
-              if (child.textContent) {
-                child.textContent = '';
-              }
-            });
-            // Remove text nodes
-            Array.from(button.childNodes).forEach(node => {
-              if (node.nodeType === Node.TEXT_NODE) {
-                node.textContent = '';
-              }
-            });
-            // Set aria-label to empty to prevent screen readers
-            button.setAttribute('aria-label', '');
-          } else {
-            // Desktop text
-            if (button.textContent?.includes('Start')) {
-              button.textContent = 'Start';
-            } else if (button.textContent?.includes('Connecting')) {
-              button.textContent = '...';  // Ellipsis for connecting
-            } else if (button.textContent?.includes('Stop') || button.textContent?.includes('Close')) {
-              button.textContent = 'End';
-            }
-          }
-        });
-      };
-      
-      // Play connection sound when button is clicked
-      const playConnectionSound = () => {
-        console.log('Playing connection sound...');
-        const audio = new Audio('/audio/connection_sound.wav');
-        audio.volume = 0.3; // Increased to 30% volume
-        audio.play()
-          .then(() => console.log('Connection sound started'))
-          .catch(e => console.error('Could not play connection sound:', e));
-      };
-      
-      // Add click listener to play sound
-      const addButtonClickListener = () => {
-        const buttons = el.querySelectorAll('button');
-        buttons.forEach(button => {
-          // Only add listener to start button
-          if (button.textContent?.includes('Start') || 
-              button.getAttribute('aria-label')?.includes('Start')) {
-            button.removeEventListener('click', playConnectionSound); // Remove if exists
-            button.addEventListener('click', playConnectionSound);
-          }
-        });
-      };
-      
-      // Watch for button creation and text changes
-      const buttonObserver = new MutationObserver((mutations) => {
-        changeButtonText();
-        addButtonClickListener();
-        
-        // Extra aggressive for mobile - watch for ANY text changes
-        if (window.innerWidth < 768) {
-          mutations.forEach(mutation => {
-            if (mutation.type === 'characterData' || mutation.type === 'childList') {
-              const buttons = el.querySelectorAll('button');
-              buttons.forEach(button => {
-                if (button.textContent && button.textContent.trim() !== '') {
-                  console.log('Removing text:', button.textContent);
-                  button.textContent = '';
-                  button.innerHTML = '';
-                }
-              });
-            }
-          });
-        }
-      });
-      
-      buttonObserver.observe(el, { 
-        childList: true, 
-        subtree: true, 
-        characterData: true,
-        characterDataOldValue: true 
-      });
-      
-      // Also try immediately and after delays
-      setTimeout(() => {
-        changeButtonText();
-        addButtonClickListener();
-        // Debug: log button status
-        const buttons = el.querySelectorAll('button');
-        console.log(`[SimliSquare] Found ${buttons.length} buttons after 100ms`);
-        buttons.forEach((btn, i) => {
-          console.log(`Button ${i}: "${btn.textContent}", visible: ${btn.offsetWidth > 0}`);
-        });
-      }, 100);
-      setTimeout(() => {
-        changeButtonText();
-        addButtonClickListener();
-      }, 500);
-      setTimeout(() => {
-        changeButtonText();
-        addButtonClickListener();
-        // Final button check
-        const buttons = el.querySelectorAll('button');
-        console.log(`[SimliSquare] Final button count: ${buttons.length}`);
-      }, 1000);
-      
-      // Clear the loading message before adding widget
       if (hostRef.current) {
-        // Keep the video element
-        const idleVideo = hostRef.current.querySelector('#idle-video');
-        hostRef.current.innerHTML = '';
-        if (idleVideo) {
-          hostRef.current.appendChild(idleVideo);
-        }
-        
-        // Add custom styles
-        const style = document.createElement('style');
-        style.textContent = `
-          /* Target the Simli widget start button */
-          simli-widget button:first-of-type,
-          simli-widget button[aria-label*="Start"],
-          simli-widget button:contains("Start") {
-            background: #8B4513 !important; /* Brown metal color */
-            color: #FFF8DC !important; /* Cream text */
-            border-radius: 50% !important; /* Circular button */
-            width: 80px !important;
-            height: 80px !important;
-            padding: 0 !important;
-            font-weight: 900 !important;
-            font-size: 16px !important;
-            letter-spacing: 0.05em !important;
-            text-transform: uppercase !important;
-            transition: all 0.2s !important;
-            border: 3px solid #654321 !important; /* Darker brown border */
-            cursor: pointer !important;
-            position: relative !important;
-            z-index: 1000 !important;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 
-                        0 4px 8px rgba(0,0,0,0.5),
-                        inset 0 -2px 4px rgba(101,67,33,0.8) !important;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
-            font-family: "Impact", "Arial Black", sans-serif !important;
-          }
-          
-          /* Close/Stop button */
-          simli-widget button:last-of-type,
-          simli-widget button[aria-label*="Close"],
-          simli-widget button[aria-label*="Stop"] {
-            background: #ec4899 !important; /* Pink for Dismiss */
-            color: white !important;
-          }
-          
-          simli-widget button:first-of-type:hover {
-            background: #A0522D !important; /* Lighter brown on hover */
-            transform: scale(1.05) !important;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 
-                        0 6px 12px rgba(0,0,0,0.6),
-                        inset 0 -2px 6px rgba(101,67,33,0.9) !important;
-          }
-          
-          simli-widget button:last-of-type:hover {
-            background: #db2777 !important;
-            transform: scale(1.05) !important;
-          }
-          
-          /* Desktop: Override button text with CSS */
-          @media (min-width: 768px) {
-            simli-widget button[aria-label*="Start"]::after {
-              content: "Start" !important;
-            }
-            simli-widget button[aria-label*="Start"] {
-              font-size: 0 !important;
-            }
-            simli-widget button[aria-label*="Start"]::after {
-              font-size: 18px !important;
-            }
-            
-            simli-widget button[aria-label*="Connecting"]::after {
-              content: "..." !important;
-            }
-            simli-widget button[aria-label*="Connecting"] {
-              font-size: 0 !important;
-            }
-            simli-widget button[aria-label*="Connecting"]::after {
-              font-size: 18px !important;
-            }
-            
-            simli-widget button[aria-label*="Close"]::after,
-            simli-widget button[aria-label*="Stop"]::after {
-              content: "End" !important;
-            }
-            simli-widget button[aria-label*="Close"],
-            simli-widget button[aria-label*="Stop"] {
-              font-size: 0 !important;
-            }
-            simli-widget button[aria-label*="Close"]::after,
-            simli-widget button[aria-label*="Stop"]::after {
-              font-size: 18px !important;
-            }
-          }
-          
-          /* Mobile: No text, just button - more aggressive */
-          @media (max-width: 767px) {
-            simli-widget button {
-              font-size: 0 !important;
-              min-width: 60px !important;
-              min-height: 60px !important;
-              text-indent: -9999px !important;
-              color: transparent !important;
-            }
-            simli-widget button * {
-              display: none !important;
-            }
-            simli-widget button::after,
-            simli-widget button::before {
-              content: "" !important;
-              display: none !important;
-            }
-          }
-          
-          /* Center the widget content */
-          simli-widget {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            height: 100% !important;
-            width: 100% !important;
-            background: transparent !important; /* Transparent background */
-          }
-          
-          /* Style the widget container */
-          simli-widget > div {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            height: 100% !important;
-            width: 100% !important;
-          }
-          
-          /* Hide the dotted face borders */
-          simli-widget video,
-          simli-widget canvas {
-            object-fit: cover !important;
-            width: 100% !important;
-            height: 100% !important;
-          }
-          
-          /* Style the dotted face video */
-          simli-widget video.dotted-face {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-          }
-          
-          /* Hide other loading elements */
-          simli-widget .loading:not(.dotted-face),
-          simli-widget svg {
-            opacity: 0 !important;
-            visibility: hidden !important;
-          }
-          
-          /* Make widget completely transparent */
-          simli-widget,
-          simli-widget * {
-            background: transparent !important;
-            background-color: transparent !important;
-            background-image: none !important;
-          }
-          
-          /* Keep buttons in DOM but hidden from users; ClickZone triggers programmatically */
-          simli-widget button {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            position: relative !important;
-            z-index: 20 !important;
-          }
-        `;
-        document.head.appendChild(style);
-        
-        hostRef.current.appendChild(el);
+        hostRef.current.innerHTML = "";
+        hostRef.current.appendChild(widget);
       }
-      console.log("SimliSquare: Widget element added to DOM");
-    })();
+
+      const sync = () => {
+        if (!widget) return;
+        syncVisualState(widget, idleVideo);
+      };
+
+      sync();
+
+      intervalId = window.setInterval(sync, 250);
+      window.setTimeout(() => {
+        if (intervalId) window.clearInterval(intervalId);
+      }, 30000);
+
+      hostObserver = new MutationObserver(sync);
+      hostObserver.observe(widget, { childList: true, subtree: true });
+
+      const waitForShadow = window.setInterval(() => {
+        if (!widget?.shadowRoot) return;
+        applyShadowStyles(widget);
+        sync();
+        shadowObserver = new MutationObserver(sync);
+        shadowObserver.observe(widget.shadowRoot, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+        });
+        window.clearInterval(waitForShadow);
+      }, 100);
+    };
+
+    mount().catch((err) => {
+      console.error("Simli widget mount error:", err);
+    });
+
+    return () => {
+      if (intervalId) window.clearInterval(intervalId);
+      shadowObserver?.disconnect();
+      hostObserver?.disconnect();
+    };
   }, []);
 
   return <div ref={hostRef} className="h-full w-full" />;

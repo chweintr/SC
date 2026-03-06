@@ -6,28 +6,46 @@ type ClickZoneProps = {
   className?: string;
 };
 
+type WidgetElement = HTMLElement & {
+  isRunning?: boolean;
+  openWidget?: () => void;
+  closeWidget?: () => void;
+  shadowRoot?: ShadowRoot | null;
+};
+
 export default function ClickZone({ style, className }: ClickZoneProps) {
   const lastTriggerRef = React.useRef(0);
 
-  const triggerSimliButton = () => {
-    const simliWidget = document.querySelector('simli-widget');
+  const triggerSimliWidget = (): "connect" | "disconnect" | null => {
+    const simliWidget = document.querySelector('simli-widget') as WidgetElement | null;
     if (!simliWidget) {
       console.log('simli-widget not found');
-      return false;
+      return null;
     }
 
-    const buttons = Array.from(simliWidget.querySelectorAll('button')) as HTMLButtonElement[];
-    if (!buttons.length) {
-      console.log('No buttons found in simli-widget');
-      return false;
+    const isRunning = Boolean(simliWidget.isRunning);
+    if (isRunning) {
+      if (typeof simliWidget.closeWidget === 'function') {
+        simliWidget.closeWidget();
+        return "disconnect";
+      }
+      const closeButton = simliWidget.shadowRoot?.querySelector('.close-button') as HTMLButtonElement | null;
+      closeButton?.click();
+      return "disconnect";
     }
 
-    const clickable = buttons.find((btn) => !btn.disabled) ?? buttons[0];
-    console.log('Clicking Simli button:', clickable?.textContent || clickable?.getAttribute('aria-label') || 'unknown');
-    clickable.click();
-    clickable.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    clickable.dispatchEvent(new Event('click', { bubbles: true }));
-    return true;
+    if (typeof simliWidget.openWidget === 'function') {
+      simliWidget.openWidget();
+      return "connect";
+    }
+
+    const controlButton = simliWidget.shadowRoot?.querySelector('.control-button') as HTMLButtonElement | null;
+    if (controlButton) {
+      controlButton.click();
+      return "connect";
+    }
+
+    return null;
   };
 
   const handleActivate = (event?: React.SyntheticEvent) => {
@@ -39,18 +57,22 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
     lastTriggerRef.current = now;
 
     console.log('ClickZone activated');
-    document.dispatchEvent(new CustomEvent('squatch-button-clicked'));
-
-    if (triggerSimliButton()) {
+    const action = triggerSimliWidget();
+    if (action) {
+      document.dispatchEvent(new CustomEvent('squatch-button-clicked', { detail: { action } }));
       return;
     }
 
-    // Slow devices can render Simli controls late; retry briefly.
+    // Slow devices can render the widget late; retry briefly.
     let attempts = 0;
     const maxAttempts = 12;
     const retry = window.setInterval(() => {
       attempts += 1;
-      if (triggerSimliButton() || attempts >= maxAttempts) {
+      const retryAction = triggerSimliWidget();
+      if (retryAction) {
+        document.dispatchEvent(new CustomEvent('squatch-button-clicked', { detail: { action: retryAction } }));
+      }
+      if (retryAction || attempts >= maxAttempts) {
         window.clearInterval(retry);
       }
     }, 250);

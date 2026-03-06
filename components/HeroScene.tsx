@@ -79,14 +79,20 @@ export default function HeroScene() {
 
   // Listen for ClickZone events (it handles the actual Simli triggering)
   React.useEffect(() => {
-    const handleButtonClick = () => {
-      console.log('🔴 Button clicked - showing message');
+    const handleButtonClick = (event: Event) => {
+      const customEvent = event as CustomEvent<{ action?: "connect" | "disconnect" }>;
+      const action = customEvent.detail?.action;
+
+      if (action === "disconnect") {
+        setIsConnecting(false);
+        setShowInstructions(true);
+        return;
+      }
+
       setShowInstructions(false);
       setIsConnecting(true);
-      
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        console.log('⏰ Message timeout - hiding');
+
+      window.setTimeout(() => {
         setIsConnecting(false);
       }, 5000);
     };
