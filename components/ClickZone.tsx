@@ -17,6 +17,11 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
   const lastTriggerRef = React.useRef(0);
 
   const triggerSimliWidget = (): "connect" | "disconnect" | null => {
+    const controller = window.__squatchSimliController;
+    if (controller?.isReady()) {
+      return controller.toggle();
+    }
+
     const simliWidget = document.querySelector('simli-widget') as WidgetElement | null;
     if (!simliWidget) {
       console.log('simli-widget not found');
@@ -79,9 +84,12 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
   };
 
   return (
-    <div 
-      className={`absolute z-[60] cursor-pointer ${className ?? ""}`}
+    <button
+      id="simliOverlayBtn"
+      type="button"
+      className={`absolute z-[60] cursor-pointer touch-manipulation ${className ?? ""}`}
       onPointerDown={handleActivate}
+      onClick={handleActivate}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           handleActivate(event);
@@ -91,9 +99,10 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
         ...style,
         // Invisible but clickable
         background: 'transparent',
+        border: 'none',
+        borderRadius: '999px',
       }}
       aria-label="Activate Squatch"
-      role="button"
       tabIndex={0}
     />
   );

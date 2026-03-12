@@ -1,4 +1,13 @@
 import React from "react";
+
+type SquatchSimliController = {
+  open: () => boolean;
+  close: () => boolean;
+  toggle: () => "connect" | "disconnect" | null;
+  isReady: () => boolean;
+  isRunning: () => boolean;
+};
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -9,6 +18,10 @@ declare global {
         position?: string;
       };
     }
+  }
+
+  interface Window {
+    __squatchSimliController?: SquatchSimliController;
   }
 }
 export {};

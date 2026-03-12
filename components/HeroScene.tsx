@@ -13,6 +13,7 @@ export default function HeroScene() {
   // Responsive sizing based on viewport
   const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
   const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isSessionActive, setIsSessionActive] = React.useState(false);
   const [showInstructions, setShowInstructions] = React.useState(true);
   const backgroundVideoRef = React.useRef<HTMLVideoElement>(null);
   
@@ -63,6 +64,11 @@ export default function HeroScene() {
   const instructionY = buttonPx.centerY + buttonPx.size * 0.9;
   const connectingY = buttonPx.centerY + buttonPx.size * 1.15;
 
+  const handleTransmissionToggle = React.useCallback(() => {
+    const proxyButton = document.getElementById("simliOverlayBtn") as HTMLButtonElement | null;
+    proxyButton?.click();
+  }, []);
+
   // Start background video if autoplay fails
   React.useEffect(() => {
     if (backgroundVideoRef.current) {
@@ -85,11 +91,13 @@ export default function HeroScene() {
 
       if (action === "disconnect") {
         setIsConnecting(false);
+        setIsSessionActive(false);
         setShowInstructions(true);
         return;
       }
 
       setShowInstructions(false);
+      setIsSessionActive(true);
       setIsConnecting(true);
 
       window.setTimeout(() => {
@@ -270,8 +278,8 @@ export default function HeroScene() {
             style={{
               left: `${buttonPx.centerX}px`,
               top: `${buttonPx.centerY}px`,
-              width: `${buttonPx.size}px`,
-              height: `${buttonPx.size}px`,
+              width: `${buttonPx.size * 1.2}px`,
+              height: `${buttonPx.size * 1.2}px`,
               transform: "translate(-50%, -50%)",
             }}
           />
@@ -303,31 +311,139 @@ export default function HeroScene() {
             </div>
           )}
 
-          {/* Instruction text - shows initially, positioned near red button */}
-          {showInstructions && !isConnecting && (
-            <div
-              className="absolute pointer-events-none"
-              style={{
-                left: `${buttonPx.centerX}px`,
-                top: `${instructionY}px`,
-                transform: "translate(-50%, 0)",
-                textAlign: "center",
-                zIndex: 1000,
-              }}
-            >
+        </div>
+      </div>
+
+      <div className="fixed bottom-6 left-1/2 z-[80] w-[min(92vw,420px)] -translate-x-1/2 px-4">
+        <div
+          className="rounded-[28px] border border-[#e7c37a]/35 bg-[rgba(8,10,10,0.76)] p-3 shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+          style={{
+            boxShadow:
+              "0 18px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(231,195,122,0.08)",
+          }}
+        >
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div>
               <p
-                className="text-white text-base md:text-xl font-bold px-4"
+                className="text-[11px] uppercase text-[#f7d79c]"
                 style={{
-                  textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.8)",
                   fontFamily: "'Bebas Neue', 'Impact', sans-serif",
-                  letterSpacing: "0.1em",
+                  letterSpacing: "0.22em",
                 }}
               >
-                TAP RED LENS<br />
-                TO TRANSMIT
+                Forest Relay
+              </p>
+              <p className="text-xs text-white/70">
+                {isConnecting
+                  ? "Opening live channel"
+                  : isSessionActive
+                    ? "Conversation live"
+                    : "Ready to connect"}
               </p>
             </div>
-          )}
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{
+                  background: isConnecting ? "#f59e0b" : isSessionActive ? "#ef4444" : "#34d399",
+                  boxShadow: isConnecting
+                    ? "0 0 16px rgba(245,158,11,0.9)"
+                    : isSessionActive
+                      ? "0 0 18px rgba(239,68,68,0.95)"
+                      : "0 0 14px rgba(52,211,153,0.8)",
+                }}
+              />
+              <span
+                className="text-[10px] uppercase text-white/80"
+                style={{
+                  fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+                  letterSpacing: "0.16em",
+                }}
+              >
+                {isConnecting ? "Linking" : isSessionActive ? "Live" : "Standby"}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTransmissionToggle}
+            disabled={isConnecting}
+            className="group relative flex w-full items-center justify-between overflow-hidden rounded-[22px] border px-5 py-4 text-left transition duration-200 disabled:cursor-wait disabled:opacity-80"
+            style={{
+              borderColor: isSessionActive ? "rgba(248,113,113,0.55)" : "rgba(231,195,122,0.42)",
+              background: isSessionActive
+                ? "linear-gradient(135deg, rgba(91,19,19,0.95), rgba(37,7,7,0.92))"
+                : "linear-gradient(135deg, rgba(51,27,11,0.94), rgba(15,9,7,0.96))",
+              boxShadow: isSessionActive
+                ? "0 14px 30px rgba(120,22,22,0.35), inset 0 1px 0 rgba(255,255,255,0.08)"
+                : "0 14px 30px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.08)",
+            }}
+            aria-label={isSessionActive ? "End transmission" : "Start transmission"}
+          >
+            <div className="absolute inset-0 opacity-40">
+              <div
+                className="h-full w-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 24%, transparent 48%, transparent 100%)",
+                }}
+              />
+            </div>
+
+            <div className="relative flex items-center gap-4">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full border"
+                style={{
+                  borderColor: isSessionActive ? "rgba(252,165,165,0.55)" : "rgba(252,211,77,0.38)",
+                  background: isSessionActive
+                    ? "radial-gradient(circle at 35% 35%, #ff8d8d 0%, #e11d48 42%, #3f0a12 100%)"
+                    : "radial-gradient(circle at 35% 35%, #fef08a 0%, #f97316 40%, #3b1708 100%)",
+                  boxShadow: isSessionActive
+                    ? "0 0 26px rgba(244,63,94,0.5)"
+                    : "0 0 22px rgba(249,115,22,0.42)",
+                }}
+              >
+                <span
+                  className="block h-4 w-4 rounded-full bg-white/95"
+                  style={{ boxShadow: "0 0 12px rgba(255,255,255,0.8)" }}
+                />
+              </div>
+
+              <div>
+                <p
+                  className="text-[22px] uppercase leading-none text-white"
+                  style={{
+                    fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+                    letterSpacing: "0.08em",
+                  }}
+                >
+                  {isConnecting
+                    ? "Connecting"
+                    : isSessionActive
+                      ? "End Transmission"
+                      : "Start Transmission"}
+                </p>
+                <p className="mt-1 text-sm text-white/65">
+                  {isSessionActive
+                    ? "Tap to close the live channel."
+                    : "Tap to begin the Simli session."}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="relative rounded-full border px-3 py-1 text-[10px] uppercase text-white/80"
+              style={{
+                fontFamily: "'Bebas Neue', 'Impact', sans-serif",
+                letterSpacing: "0.2em",
+                borderColor: "rgba(255,255,255,0.14)",
+                background: "rgba(255,255,255,0.04)",
+              }}
+            >
+              {isSessionActive ? "Close" : "Open"}
+            </div>
+          </button>
         </div>
       </div>
 

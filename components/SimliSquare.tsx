@@ -4,6 +4,10 @@ import * as React from "react";
 type WidgetElement = HTMLElement & {
   shadowRoot?: ShadowRoot | null;
   isRunning?: boolean;
+  openWidget?: () => void;
+  closeWidget?: () => void;
+  startSession?: () => void;
+  stopSession?: () => void;
 };
 
 function applyShadowStyles(widget: WidgetElement) {
@@ -16,6 +20,13 @@ function applyShadowStyles(widget: WidgetElement) {
     style.textContent = `
       :host {
         display: block !important;
+        position: relative !important;
+        inset: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        top: auto !important;
+        z-index: 1 !important;
         width: 100% !important;
         height: 100% !important;
       }
@@ -122,6 +133,49 @@ export default function SimliSquare() {
 
     const idleVideo = document.getElementById("idle-video") as HTMLVideoElement | null;
 
+    const registerController = () => {
+      if (!widget) return;
+
+      const open = () => {
+        if (!widget) return false;
+        if (widget.isRunning) return false;
+        if (typeof widget.openWidget === "function") {
+          widget.openWidget();
+          return true;
+        }
+        if (typeof widget.startSession === "function") {
+          widget.startSession();
+          return true;
+        }
+        return false;
+      };
+
+      const close = () => {
+        if (!widget) return false;
+        if (!widget.isRunning) return false;
+        if (typeof widget.closeWidget === "function") {
+          widget.closeWidget();
+          return true;
+        }
+        if (typeof widget.stopSession === "function") {
+          widget.stopSession();
+          return true;
+        }
+        return false;
+      };
+
+      window.__squatchSimliController = {
+        open,
+        close,
+        toggle: () => {
+          if (!widget) return null;
+          return widget.isRunning ? (close() ? "disconnect" : null) : (open() ? "connect" : null);
+        },
+        isReady: () => Boolean(widget),
+        isRunning: () => Boolean(widget?.isRunning),
+      };
+    };
+
     const mount = async () => {
       const r = await fetch("/api/simli/token", { cache: "no-store" });
       if (!r.ok) {
@@ -142,13 +196,19 @@ export default function SimliSquare() {
       widget.setAttribute("token", token);
       widget.setAttribute("avatarid", avatarid);
       widget.setAttribute("agentid", avatarid);
+      widget.setAttribute("position", "relative");
       widget.setAttribute("overlay", "false");
-      widget.setAttribute("style", "display:block;width:100%;height:100%;background:transparent");
+      widget.setAttribute(
+        "style",
+        "display:block;position:relative;inset:auto;left:auto;right:auto;top:auto;bottom:auto;width:100%;height:100%;background:transparent;z-index:1"
+      );
 
       if (hostRef.current) {
         hostRef.current.innerHTML = "";
         hostRef.current.appendChild(widget);
       }
+
+      registerController();
 
       const sync = () => {
         if (!widget) return;
@@ -187,6 +247,9 @@ export default function SimliSquare() {
       if (intervalId) window.clearInterval(intervalId);
       shadowObserver?.disconnect();
       hostObserver?.disconnect();
+      if (window.__squatchSimliController) {
+        delete window.__squatchSimliController;
+      }
     };
   }, []);
 
