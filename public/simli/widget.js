@@ -800,54 +800,29 @@ loadScript("https://unpkg.com/@daily-co/daily-js")
         const agentId = this.getAttribute("agentid");
         const isOverlay = this.getAttribute("overlay") === "true";
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", `https://api.simli.ai/session/${agentId}/${token}`, true);
-        
-        // Add necessary headers
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.setRequestHeader("Accept", "application/json");
+        const handleError = function (status, body) {
+          let errorMessage = "Error ";
+          if (status === 403) errorMessage += "- Session not allowed";
+          else if (status === 401) errorMessage += "- Unauthorized";
+          else errorMessage += status;
 
-        xhr.onreadystatechange = function () {
-          if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              callback(null, data.roomUrl);
-            } else {
-              // More detailed error handling
-              let errorMessage = "Error ";
-              if (xhr.status === 403) {
-                errorMessage += "- Session not allowed";
-              } else if (xhr.status === 401) {
-                errorMessage += "- Unauthorized";
-              } else {
-                errorMessage += xhr.status;
-              }
-              
-              if (isOverlay) {
-                this.showStatus(errorMessage, true);
-                setTimeout(() => {
-                  this.handleDisconnection();
-                }, 3000);
-              } else {
-                this.controlButton.textContent = `⚠️ ${errorMessage}`;
-                this.controlButton.classList.add("active");
-                this.controlButton.disabled = true;
-              }
-              callback(new Error(`Request failed. Status: ${xhr.status}`));
-              
-              // Log the error response for debugging
-              console.error("API Error:", xhr.responseText);
-            }
+          if (isOverlay) {
+            this.showStatus(errorMessage, true);
+            setTimeout(() => { this.handleDisconnection(); }, 3000);
+          } else if (this.controlButton) {
+            this.controlButton.textContent = `⚠️ ${errorMessage}`;
+            this.controlButton.classList.add("active");
+            this.controlButton.disabled = true;
           }
+          console.error("API Error:", body);
+          callback(new Error(`Request failed. Status: ${status}`));
         }.bind(this);
 
-        xhr.onerror = function() {
+        const handleNetworkError = function () {
           if (isOverlay) {
             this.showStatus("Network Error", true);
-            setTimeout(() => {
-              this.handleDisconnection();
-            }, 3000);
-          } else {
+            setTimeout(() => { this.handleDisconnection(); }, 3000);
+          } else if (this.controlButton) {
             this.controlButton.textContent = "⚠️ Network Error";
             this.controlButton.classList.add("active");
             this.controlButton.disabled = true;
@@ -855,6 +830,30 @@ loadScript("https://unpkg.com/@daily-co/daily-js")
           callback(new Error("Network error occurred"));
         }.bind(this);
 
+        console.log("[SimliWidget] startAgentSession called", { agentId, hasToken: !!token });
+
+        // Correct endpoint: GET /auto/start/{agentId}/{token}
+        // (matches latest widget from app.simli.com/simli-widget/index.js)
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `https://api.simli.ai/auto/start/${agentId}/${token}`, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState !== 4) return;
+          console.log("[SimliWidget] auto/start response:", xhr.status, xhr.responseText.substring(0, 300));
+          if (xhr.status === 200) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              console.log("[SimliWidget] Got room URL:", data.roomUrl);
+              callback(null, data.roomUrl);
+            } catch (e) {
+              handleError(xhr.status, xhr.responseText);
+            }
+          } else {
+            handleError(xhr.status, xhr.responseText);
+          }
+        };
+        xhr.onerror = handleNetworkError;
         xhr.send();
       }
 

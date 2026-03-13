@@ -55,7 +55,6 @@ export async function GET(req: NextRequest) {
       },
       body: JSON.stringify({
         simliAPIKey: apiKey,
-        avatarID: avatarId,
       }),
       cache: "no-store",
     });

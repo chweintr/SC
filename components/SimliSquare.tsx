@@ -6,12 +6,17 @@ import * as React from "react";
  *
  * In overlay mode the widget looks for <button id="simliOverlayBtn">
  * (rendered by ClickZone) and wires its own click handler to
- * start/stop the session – no programmatic .openWidget() needed.
+ * start/stop the session.
+ *
+ * The widget calls GET /auto/start/{agentId}/{token} to get a Daily.co
+ * room URL, then joins via WebRTC.
  *
  * We inject CSS into the shadow root to hide the widget's built-in
- * chrome (buttons, logo, dotted-face) and make the video fill the
- * container so it composites cleanly under the overlay PNG.
+ * chrome and make the video fill the container for overlay compositing.
  */
+
+const FACE_ID = "db457e6f-ac2e-4478-9f75-430ed9fd5a3c";
+
 export default function SimliSquare() {
   const hostRef = React.useRef<HTMLDivElement>(null);
 
@@ -29,30 +34,43 @@ export default function SimliSquare() {
       const { token, avatarid, _isMock } = await r.json();
       if (!token || _isMock) return;
 
-      const el = document.createElement("simli-widget");
+      const el = document.createElement("simli-widget") as any;
 
       // Set attributes – the widget reads these via getAttribute()
+      // Use multiple naming formats for compatibility (Simli docs are inconsistent)
       el.setAttribute("token", token);
       el.setAttribute("agentid", avatarid);
-      el.setAttribute("overlay", "true");          // <-- key: enables #simliOverlayBtn binding
+      el.setAttribute("agentId", avatarid);
+      el.setAttribute("agent-id", avatarid);
+      el.setAttribute("faceid", FACE_ID);
+      el.setAttribute("faceId", FACE_ID);
+      el.setAttribute("face-id", FACE_ID);
+      el.setAttribute("overlay", "true");
       el.setAttribute("position", "relative");
       el.setAttribute(
         "style",
         "display:block;position:relative;inset:auto;width:100%;height:100%;background:transparent;z-index:1"
       );
 
+      // Also set as JS properties for compatibility
+      el.token = token;
+      el.agentid = avatarid;
+      el.agentId = avatarid;
+      el.faceid = FACE_ID;
+      el.faceId = FACE_ID;
+
       if (hostRef.current) {
         hostRef.current.innerHTML = "";
         hostRef.current.appendChild(el);
       }
 
-      console.log("[SimliSquare] Widget mounted with overlay=true");
+      console.log("[SimliSquare] Widget mounted with overlay=true, agentId:", avatarid);
 
       // ── Inject styles into the shadow root to hide chrome ──
       const injectStyles = () => {
         const shadow = el.shadowRoot;
         if (!shadow) return false;
-        if (shadow.getElementById("squatch-style")) return true; // already done
+        if (shadow.getElementById("squatch-style")) return true;
 
         const s = document.createElement("style");
         s.id = "squatch-style";
@@ -120,7 +138,7 @@ export default function SimliSquare() {
         if (!shadow || !idleVideo) return;
 
         const simliVideo = shadow.querySelector(".simli-video") as HTMLVideoElement | null;
-        const running = (el as any).isRunning === true;
+        const running = el.isRunning === true;
         const hasStream =
           !!simliVideo &&
           (!!simliVideo.srcObject ||
@@ -136,13 +154,42 @@ export default function SimliSquare() {
         if (syncInterval) clearInterval(syncInterval);
       }, 60000);
 
-      // Expose a simple stop function for the HeroScene "End" button
+      // Expose stop function for the HeroScene "End" button
       (window as any).__squatchSimliStop = () => {
-        if (typeof (el as any).stopSession === "function") {
-          (el as any).stopSession();
-        } else if (typeof (el as any).closeWidget === "function") {
-          (el as any).closeWidget();
+        if (typeof el.stopSession === "function") {
+          el.stopSession();
+        } else if (typeof el.closeWidget === "function") {
+          el.closeWidget();
         }
+      };
+
+      // Expose auto-start: polls for the widget's internal Start button
+      // and clicks it programmatically. Last-resort fallback if overlay
+      // mode's findAndConnectTriggerButton() didn't bind properly.
+      (window as any).__squatchSimliAutoStart = () => {
+        // First try the widget's public API
+        if (typeof el.startSession === "function" && !el.isRunning) {
+          console.log("[SimliSquare] autoStart: calling startSession()");
+          el.startSession();
+          return;
+        }
+        // Fallback: find and click the internal button
+        let attempts = 0;
+        const tryClick = () => {
+          attempts++;
+          let btn: HTMLButtonElement | null = el.querySelector("button");
+          if (!btn && el.shadowRoot) {
+            btn = el.shadowRoot.querySelector("button");
+          }
+          if (btn) {
+            console.log("[SimliSquare] autoStart: clicking internal button");
+            btn.click();
+            return;
+          }
+          if (attempts < 30) setTimeout(tryClick, 200);
+          else console.warn("[SimliSquare] autoStart: gave up after 30 attempts");
+        };
+        tryClick();
       };
     };
 
@@ -152,6 +199,7 @@ export default function SimliSquare() {
       if (shadowStyleInterval) clearInterval(shadowStyleInterval);
       if (syncInterval) clearInterval(syncInterval);
       delete (window as any).__squatchSimliStop;
+      delete (window as any).__squatchSimliAutoStart;
     };
   }, []);
 
