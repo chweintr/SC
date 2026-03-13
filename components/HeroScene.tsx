@@ -6,7 +6,13 @@ import DebugOverlay from "./DebugOverlay";
 import ClickZone from "./ClickZone";
 
 const OVERLAY_ASSET = { width: 1408, height: 736 };
-const WIDGET_OVERLAY = { x: 712, y: 339.5, size: 311, radius: 28 };
+const MOUNT_OVERLAY = {
+  left: 557,
+  top: 185,
+  width: 311,
+  height: 310,
+  radius: 28,
+};
 const BUTTON_OVERLAY = { x: 852, y: 526, size: 120 };
 
 export default function HeroScene() {
@@ -46,11 +52,12 @@ export default function HeroScene() {
   }, [screenSize.height, screenSize.width]);
 
   const widgetPx = React.useMemo(() => {
-    const centerX = overlayFrame.left + WIDGET_OVERLAY.x * overlayFrame.scale;
-    const centerY = overlayFrame.top + WIDGET_OVERLAY.y * overlayFrame.scale;
-    const size = WIDGET_OVERLAY.size * overlayFrame.scale;
-    const radius = WIDGET_OVERLAY.radius * overlayFrame.scale;
-    return { centerX, centerY, size, radius };
+    const left = overlayFrame.left + MOUNT_OVERLAY.left * overlayFrame.scale;
+    const top = overlayFrame.top + MOUNT_OVERLAY.top * overlayFrame.scale;
+    const width = MOUNT_OVERLAY.width * overlayFrame.scale;
+    const height = MOUNT_OVERLAY.height * overlayFrame.scale;
+    const radius = MOUNT_OVERLAY.radius * overlayFrame.scale;
+    return { left, top, width, height, radius };
   }, [overlayFrame]);
 
   const buttonPx = React.useMemo(() => {
@@ -254,11 +261,10 @@ export default function HeroScene() {
             playsInline
             preload="auto"
             style={{
-              left: `${widgetPx.centerX}px`,
-              top: `${widgetPx.centerY}px`,
-              width: `${widgetPx.size}px`,
-              height: `${widgetPx.size}px`,
-              transform: "translate(-50%,-50%)",
+              left: `${widgetPx.left}px`,
+              top: `${widgetPx.top}px`,
+              width: `${widgetPx.width}px`,
+              height: `${widgetPx.height}px`,
               borderRadius: `${widgetPx.radius}px`,
               objectFit: "cover",
             }}
@@ -271,11 +277,10 @@ export default function HeroScene() {
           <div
             className="absolute z-10"
             style={{
-              left: `${widgetPx.centerX}px`,
-              top: `${widgetPx.centerY}px`,
-              width: `${widgetPx.size}px`,
-              height: `${widgetPx.size}px`,
-              transform: "translate(-50%,-50%)",
+              left: `${widgetPx.left}px`,
+              top: `${widgetPx.top}px`,
+              width: `${widgetPx.width}px`,
+              height: `${widgetPx.height}px`,
               borderRadius: `${widgetPx.radius}px`,
               background: "transparent",
               overflow: "hidden",
