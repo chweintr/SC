@@ -49,7 +49,10 @@ export async function GET(req: NextRequest) {
   const tryE2E = async () => {
     const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-simli-api-key": apiKey,
+      },
       body: JSON.stringify({
         simliAPIKey: apiKey,
         avatarID: avatarId,
@@ -63,7 +66,10 @@ export async function GET(req: NextRequest) {
   const tryAutoToken = async () => {
     const upstream = await fetch("https://api.simli.ai/auto/token", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-simli-api-key": apiKey,
+      },
       body: JSON.stringify({
         simliAPIKey: apiKey,
         expiryStamp: Math.floor(Date.now() / 1000) + 1800,
