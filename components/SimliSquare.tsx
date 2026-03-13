@@ -1,177 +1,23 @@
 "use client";
 import * as React from "react";
 
-type WidgetElement = HTMLElement & {
-  shadowRoot?: ShadowRoot | null;
-  isRunning?: boolean;
-  openWidget?: () => void;
-  closeWidget?: () => void;
-  startSession?: () => void;
-  stopSession?: () => void;
-};
-
-function applyShadowStyles(widget: WidgetElement) {
-  const shadow = widget.shadowRoot;
-  if (!shadow) return;
-
-  if (!shadow.getElementById("squatch-widget-style")) {
-    const style = document.createElement("style");
-    style.id = "squatch-widget-style";
-    style.textContent = `
-      :host {
-        display: block !important;
-        position: relative !important;
-        inset: auto !important;
-        left: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        top: auto !important;
-        z-index: 1 !important;
-        width: 100% !important;
-        height: 100% !important;
-      }
-      .widget-container,
-      .video-wrapper {
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        aspect-ratio: 1 / 1 !important;
-        margin: 0 !important;
-        overflow: hidden !important;
-        background: transparent !important;
-        border: none !important;
-      }
-      .controls-wrapper,
-      .control-button,
-      .close-button,
-      .status-container,
-      .simli-logo {
-        display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-      .dotted-face {
-        display: none !important;
-      }
-      .simli-video {
-        position: absolute !important;
-        inset: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        background: transparent !important;
-      }
-      audio {
-        display: none !important;
-      }
-    `;
-    shadow.appendChild(style);
-  }
-}
-
-function fixWidgetLayout(widget: WidgetElement) {
-  const shadow = widget.shadowRoot;
-  if (!shadow) return;
-
-  // DON'T remove elements – the widget needs its internal references intact.
-  // The CSS in applyShadowStyles already hides chrome visually.
-
-  const container = shadow.querySelector(".widget-container") as HTMLElement | null;
-  if (container) {
-    container.style.display = "block";
-    container.style.width = "100%";
-    container.style.height = "100%";
-    container.style.maxWidth = "100%";
-    container.style.maxHeight = "100%";
-    container.style.background = "transparent";
-  }
-
-  const wrapper = shadow.querySelector(".video-wrapper") as HTMLElement | null;
-  if (wrapper) {
-    wrapper.style.width = "100%";
-    wrapper.style.height = "100%";
-    wrapper.style.maxWidth = "100%";
-    wrapper.style.maxHeight = "100%";
-    wrapper.style.margin = "0";
-    wrapper.style.overflow = "hidden";
-  }
-}
-
-function syncVisualState(widget: WidgetElement, idleVideo: HTMLVideoElement | null) {
-  applyShadowStyles(widget);
-  fixWidgetLayout(widget);
-  const shadow = widget.shadowRoot;
-  if (!shadow || !idleVideo) return;
-
-  const simliVideo = shadow.querySelector(".simli-video") as HTMLVideoElement | null;
-  const running = Boolean(widget.isRunning);
-  const hasStream =
-    !!simliVideo &&
-    (!!(simliVideo as HTMLVideoElement & { srcObject?: MediaStream | null }).srcObject ||
-      (simliVideo.readyState >= 2 && !simliVideo.paused) ||
-      simliVideo.currentTime > 0);
-
-  const showIdle = !running || !hasStream;
-  idleVideo.style.opacity = showIdle ? "1" : "0";
-  idleVideo.style.visibility = showIdle ? "visible" : "hidden";
-}
-
+/**
+ * Creates and mounts a <simli-widget> in overlay mode.
+ *
+ * In overlay mode the widget looks for <button id="simliOverlayBtn">
+ * (rendered by ClickZone) and wires its own click handler to
+ * start/stop the session – no programmatic .openWidget() needed.
+ *
+ * We inject CSS into the shadow root to hide the widget's built-in
+ * chrome (buttons, logo, dotted-face) and make the video fill the
+ * container so it composites cleanly under the overlay PNG.
+ */
 export default function SimliSquare() {
   const hostRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    let widget: WidgetElement | null = null;
-    let intervalId: number | null = null;
-    let shadowObserver: MutationObserver | null = null;
-    let hostObserver: MutationObserver | null = null;
-
-    const idleVideo = document.getElementById("idle-video") as HTMLVideoElement | null;
-
-    const registerController = () => {
-      if (!widget) return;
-
-      const open = () => {
-        if (!widget) return false;
-        if (widget.isRunning) return false;
-        if (typeof widget.openWidget === "function") {
-          widget.openWidget();
-          return true;
-        }
-        if (typeof widget.startSession === "function") {
-          widget.startSession();
-          return true;
-        }
-        return false;
-      };
-
-      const close = () => {
-        if (!widget) return false;
-        if (!widget.isRunning) return false;
-        if (typeof widget.closeWidget === "function") {
-          widget.closeWidget();
-          return true;
-        }
-        if (typeof widget.stopSession === "function") {
-          widget.stopSession();
-          return true;
-        }
-        return false;
-      };
-
-      (window as any).__squatchSimliController = {
-        open,
-        close,
-        toggle: () => {
-          if (!widget) return null;
-          return widget.isRunning ? (close() ? "disconnect" : null) : (open() ? "connect" : null);
-        },
-        isReady: () => Boolean(widget),
-        isRunning: () => Boolean(widget?.isRunning),
-      };
-    };
+    let shadowStyleInterval: ReturnType<typeof setInterval> | null = null;
+    let syncInterval: ReturnType<typeof setInterval> | null = null;
 
     const mount = async () => {
       const r = await fetch("/api/simli/token", { cache: "no-store" });
@@ -180,82 +26,132 @@ export default function SimliSquare() {
         return;
       }
 
-      const responseData = await r.json();
-      const { token, avatarid, _isMock } = responseData;
+      const { token, avatarid, _isMock } = await r.json();
       if (!token || _isMock) return;
 
-      widget = document.createElement("simli-widget") as WidgetElement;
-      (widget as unknown as Record<string, unknown>).token = token;
-      (widget as unknown as Record<string, unknown>).avatarid = avatarid;
-      (widget as unknown as Record<string, unknown>).agentid = avatarid;
-      (widget as unknown as Record<string, unknown>).overlay = false;
+      const el = document.createElement("simli-widget");
 
-      widget.setAttribute("token", token);
-      widget.setAttribute("avatarid", avatarid);
-      widget.setAttribute("agentid", avatarid);
-      widget.setAttribute("position", "relative");
-      widget.setAttribute("overlay", "false");
-      widget.setAttribute(
+      // Set attributes – the widget reads these via getAttribute()
+      el.setAttribute("token", token);
+      el.setAttribute("agentid", avatarid);
+      el.setAttribute("overlay", "true");          // <-- key: enables #simliOverlayBtn binding
+      el.setAttribute("position", "relative");
+      el.setAttribute(
         "style",
-        "display:block;position:relative;inset:auto;left:auto;right:auto;top:auto;bottom:auto;width:100%;height:100%;background:transparent;z-index:1"
+        "display:block;position:relative;inset:auto;width:100%;height:100%;background:transparent;z-index:1"
       );
 
       if (hostRef.current) {
         hostRef.current.innerHTML = "";
-        hostRef.current.appendChild(widget);
+        hostRef.current.appendChild(el);
       }
 
-      // Wait for the custom element to be defined (Daily.js loads async)
-      // before registering the controller, so openWidget/startSession exist.
-      customElements.whenDefined("simli-widget").then(() => {
-        registerController();
-        console.log("[SimliSquare] Controller registered after element upgrade");
-      });
-      // Also register immediately in case it's already defined
-      if (typeof widget.openWidget === "function") {
-        registerController();
-      }
+      console.log("[SimliSquare] Widget mounted with overlay=true");
 
-      const sync = () => {
-        if (!widget) return;
-        syncVisualState(widget, idleVideo);
+      // ── Inject styles into the shadow root to hide chrome ──
+      const injectStyles = () => {
+        const shadow = el.shadowRoot;
+        if (!shadow) return false;
+        if (shadow.getElementById("squatch-style")) return true; // already done
+
+        const s = document.createElement("style");
+        s.id = "squatch-style";
+        s.textContent = `
+          :host {
+            display: block !important;
+            position: relative !important;
+            inset: auto !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
+          .widget-container,
+          .video-wrapper {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          .controls-wrapper,
+          .control-button,
+          .close-button,
+          .status-container,
+          .simli-logo,
+          .dotted-face {
+            display: none !important;
+          }
+          .simli-video {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            background: transparent !important;
+          }
+          *, *::before, *::after {
+            background: transparent !important;
+            background-color: transparent !important;
+          }
+        `;
+        shadow.appendChild(s);
+        console.log("[SimliSquare] Shadow styles injected");
+        return true;
       };
 
-      sync();
+      // Poll until shadowRoot exists (created after Daily.js loads)
+      shadowStyleInterval = setInterval(() => {
+        if (injectStyles()) {
+          clearInterval(shadowStyleInterval!);
+          shadowStyleInterval = null;
+        }
+      }, 150);
 
-      intervalId = window.setInterval(sync, 250);
-      window.setTimeout(() => {
-        if (intervalId) window.clearInterval(intervalId);
-      }, 30000);
+      // ── Toggle idle video based on stream state ──
+      const idleVideo = document.getElementById("idle-video") as HTMLVideoElement | null;
 
-      hostObserver = new MutationObserver(sync);
-      hostObserver.observe(widget, { childList: true, subtree: true });
+      syncInterval = setInterval(() => {
+        const shadow = el.shadowRoot;
+        if (!shadow || !idleVideo) return;
 
-      const waitForShadow = window.setInterval(() => {
-        if (!widget?.shadowRoot) return;
-        applyShadowStyles(widget);
-        sync();
-        shadowObserver = new MutationObserver(sync);
-        shadowObserver.observe(widget.shadowRoot, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-        });
-        window.clearInterval(waitForShadow);
-      }, 100);
+        const simliVideo = shadow.querySelector(".simli-video") as HTMLVideoElement | null;
+        const running = (el as any).isRunning === true;
+        const hasStream =
+          !!simliVideo &&
+          (!!simliVideo.srcObject ||
+            (simliVideo.readyState >= 2 && !simliVideo.paused));
+
+        const showIdle = !running || !hasStream;
+        idleVideo.style.opacity = showIdle ? "1" : "0";
+        idleVideo.style.visibility = showIdle ? "visible" : "hidden";
+      }, 300);
+
+      // Stop polling after 60s to save resources
+      setTimeout(() => {
+        if (syncInterval) clearInterval(syncInterval);
+      }, 60000);
+
+      // Expose a simple stop function for the HeroScene "End" button
+      (window as any).__squatchSimliStop = () => {
+        if (typeof (el as any).stopSession === "function") {
+          (el as any).stopSession();
+        } else if (typeof (el as any).closeWidget === "function") {
+          (el as any).closeWidget();
+        }
+      };
     };
 
-    mount().catch((err) => {
-      console.error("Simli widget mount error:", err);
-    });
+    mount().catch((err) => console.error("SimliSquare mount error:", err));
 
     return () => {
-      if (intervalId) window.clearInterval(intervalId);
-      shadowObserver?.disconnect();
-      hostObserver?.disconnect();
-      if ((window as any).__squatchSimliController) {
-        delete (window as any).__squatchSimliController;
-      }
+      if (shadowStyleInterval) clearInterval(shadowStyleInterval);
+      if (syncInterval) clearInterval(syncInterval);
+      delete (window as any).__squatchSimliStop;
     };
   }, []);
 

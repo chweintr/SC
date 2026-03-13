@@ -72,34 +72,20 @@ export default function HeroScene() {
   const connectingY = buttonPx.centerY + buttonPx.size * 1.15;
 
   const handleTransmissionToggle = React.useCallback(() => {
-    const controller = window.__squatchSimliController;
-    if (controller?.isReady()) {
-      const action = controller.toggle();
-      if (action) {
-        document.dispatchEvent(new CustomEvent("squatch-button-clicked", { detail: { action } }));
-        return;
-      }
-    }
-
-    const proxyButton = document.getElementById("simliOverlayBtn") as HTMLButtonElement | null;
-    if (proxyButton) {
-      proxyButton.click();
+    if (isSessionActive) {
+      // Stop the session
+      const stop = (window as any).__squatchSimliStop;
+      if (typeof stop === "function") stop();
+      document.dispatchEvent(
+        new CustomEvent("squatch-button-clicked", { detail: { action: "disconnect" } })
+      );
       return;
     }
 
-    let attempts = 0;
-    const retry = window.setInterval(() => {
-      attempts += 1;
-      const retryController = window.__squatchSimliController;
-      const action = retryController?.isReady() ? retryController.toggle() : null;
-      if (action) {
-        document.dispatchEvent(new CustomEvent("squatch-button-clicked", { detail: { action } }));
-      }
-      if (action || attempts >= 10) {
-        window.clearInterval(retry);
-      }
-    }, 250);
-  }, []);
+    // Start: just click the overlay button – the widget's own handler starts the session
+    const btn = document.getElementById("simliOverlayBtn") as HTMLButtonElement | null;
+    if (btn) btn.click();
+  }, [isSessionActive]);
 
   // Start background video if autoplay fails
   React.useEffect(() => {
