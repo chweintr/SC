@@ -72,15 +72,12 @@ function applyShadowStyles(widget: WidgetElement) {
   }
 }
 
-function stripWidgetChrome(widget: WidgetElement) {
+function fixWidgetLayout(widget: WidgetElement) {
   const shadow = widget.shadowRoot;
   if (!shadow) return;
 
-  shadow
-    .querySelectorAll(
-      ".controls-wrapper, .control-button, .close-button, .status-container, .simli-logo, .dotted-face"
-    )
-    .forEach((el) => el.remove());
+  // DON'T remove elements – the widget needs its internal references intact.
+  // The CSS in applyShadowStyles already hides chrome visually.
 
   const container = shadow.querySelector(".widget-container") as HTMLElement | null;
   if (container) {
@@ -105,7 +102,7 @@ function stripWidgetChrome(widget: WidgetElement) {
 
 function syncVisualState(widget: WidgetElement, idleVideo: HTMLVideoElement | null) {
   applyShadowStyles(widget);
-  stripWidgetChrome(widget);
+  fixWidgetLayout(widget);
   const shadow = widget.shadowRoot;
   if (!shadow || !idleVideo) return;
 
@@ -208,7 +205,16 @@ export default function SimliSquare() {
         hostRef.current.appendChild(widget);
       }
 
-      registerController();
+      // Wait for the custom element to be defined (Daily.js loads async)
+      // before registering the controller, so openWidget/startSession exist.
+      customElements.whenDefined("simli-widget").then(() => {
+        registerController();
+        console.log("[SimliSquare] Controller registered after element upgrade");
+      });
+      // Also register immediately in case it's already defined
+      if (typeof widget.openWidget === "function") {
+        registerController();
+      }
 
       const sync = () => {
         if (!widget) return;
