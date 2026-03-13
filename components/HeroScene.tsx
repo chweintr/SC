@@ -65,8 +65,33 @@ export default function HeroScene() {
   const connectingY = buttonPx.centerY + buttonPx.size * 1.15;
 
   const handleTransmissionToggle = React.useCallback(() => {
+    const controller = window.__squatchSimliController;
+    if (controller?.isReady()) {
+      const action = controller.toggle();
+      if (action) {
+        document.dispatchEvent(new CustomEvent("squatch-button-clicked", { detail: { action } }));
+        return;
+      }
+    }
+
     const proxyButton = document.getElementById("simliOverlayBtn") as HTMLButtonElement | null;
-    proxyButton?.click();
+    if (proxyButton) {
+      proxyButton.click();
+      return;
+    }
+
+    let attempts = 0;
+    const retry = window.setInterval(() => {
+      attempts += 1;
+      const retryController = window.__squatchSimliController;
+      const action = retryController?.isReady() ? retryController.toggle() : null;
+      if (action) {
+        document.dispatchEvent(new CustomEvent("squatch-button-clicked", { detail: { action } }));
+      }
+      if (action || attempts >= 10) {
+        window.clearInterval(retry);
+      }
+    }, 250);
   }, []);
 
   // Start background video if autoplay fails
@@ -427,7 +452,7 @@ export default function HeroScene() {
                 <p className="mt-1 text-sm text-white/65">
                   {isSessionActive
                     ? "Tap to close the live channel."
-                    : "Tap to begin the Simli session."}
+                    : "Tap to begin the live channel."}
                 </p>
               </div>
             </div>
