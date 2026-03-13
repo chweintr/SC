@@ -164,7 +164,7 @@ export default function SimliSquare() {
         return false;
       };
 
-      window.__squatchSimliController = {
+      (window as any).__squatchSimliController = {
         open,
         close,
         toggle: () => {
@@ -247,8 +247,8 @@ export default function SimliSquare() {
       if (intervalId) window.clearInterval(intervalId);
       shadowObserver?.disconnect();
       hostObserver?.disconnect();
-      if (window.__squatchSimliController) {
-        delete window.__squatchSimliController;
+      if ((window as any).__squatchSimliController) {
+        delete (window as any).__squatchSimliController;
       }
     };
   }, []);

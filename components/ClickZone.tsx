@@ -17,7 +17,7 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
   const lastTriggerRef = React.useRef(0);
 
   const triggerSimliWidget = (): "connect" | "disconnect" | null => {
-    const controller = window.__squatchSimliController;
+    const controller = (window as any).__squatchSimliController;
     if (controller?.isReady()) {
       return controller.toggle();
     }
@@ -47,6 +47,17 @@ export default function ClickZone({ style, className }: ClickZoneProps) {
     const controlButton = simliWidget.shadowRoot?.querySelector('.control-button') as HTMLButtonElement | null;
     if (controlButton) {
       controlButton.click();
+      return "connect";
+    }
+
+    // Last resort: find any button in the shadow DOM
+    const root = simliWidget.shadowRoot ?? simliWidget;
+    const buttons = Array.from(root.querySelectorAll('button')) as HTMLButtonElement[];
+    const clickable = buttons.find((btn) => !btn.disabled) ?? buttons[0];
+    if (clickable) {
+      console.log('Clicking fallback Simli button:', clickable?.textContent || clickable?.getAttribute('aria-label') || 'unknown');
+      clickable.click();
+      clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
       return "connect";
     }
 
