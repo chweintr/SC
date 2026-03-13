@@ -40,11 +40,23 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Must be an Origin value (scheme + host [+ port])
-  const origin = req.headers.get("origin") ?? new URL(req.url).origin;
+  // Must be an Origin value (scheme + host [+ port]).
+  // On same-origin fetches the Origin header may be absent, so fall back to
+  // the request URL's origin (which is the server's own origin).
+  const origin = req.headers.get("origin")
+    || req.headers.get("referer")?.replace(/\/[^/]*$/, "")
+    || new URL(req.url).origin;
   const originAllowList = Array.from(
-    new Set([origin, "http://localhost:3000", "https://localhost:8080"])
+    new Set([
+      origin,
+      new URL(req.url).origin,           // always include the server's own origin
+      "http://localhost:3000",
+      "https://localhost:3000",
+      "http://localhost:8080",
+      "https://localhost:8080",
+    ])
   );
+  console.log("Token request origins:", { origin, originAllowList });
 
   const tryE2E = async () => {
     const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
@@ -83,10 +95,14 @@ export async function GET(req: NextRequest) {
     return { ok: upstream.ok, status: upstream.status, text, endpoint: "auto/token" };
   };
 
-  const first = await tryE2E();
+  // Try auto/token FIRST — it accepts originAllowList, which the widget
+  // needs to make cross-origin XHR to api.simli.ai from the browser.
+  // createE2ESessionToken doesn't accept originAllowList, so its tokens
+  // get rejected with 401 "Origin not allowed".
+  const first = await tryAutoToken();
   let response = first;
   if (!response.ok) {
-    response = await tryAutoToken();
+    response = await tryE2E();
   }
 
   if (!response.ok) {
