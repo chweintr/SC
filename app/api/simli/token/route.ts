@@ -42,21 +42,24 @@ export async function GET(req: NextRequest) {
 
   // Must be an Origin value (scheme + host [+ port]).
   // On same-origin fetches the Origin header may be absent, so fall back to
-  // the request URL's origin (which is the server's own origin).
-  const origin = req.headers.get("origin")
-    || req.headers.get("referer")?.replace(/\/[^/]*$/, "")
-    || new URL(req.url).origin;
+  // the Referer header or the request URL (which is the server's own origin).
+  const serverOrigin = new URL(req.url).origin;
+  const refererHeader = req.headers.get("referer");
+  const refererOrigin = refererHeader ? new URL(refererHeader).origin : null;
+  const origin = req.headers.get("origin") || refererOrigin || serverOrigin;
+
   const originAllowList = Array.from(
     new Set([
       origin,
-      new URL(req.url).origin,           // always include the server's own origin
+      serverOrigin,                       // always include the server's own origin
+      ...(refererOrigin ? [refererOrigin] : []),
       "http://localhost:3000",
       "https://localhost:3000",
       "http://localhost:8080",
       "https://localhost:8080",
-    ])
+    ].filter(Boolean))
   );
-  console.log("Token request origins:", { origin, originAllowList });
+  console.log("Token request origins:", { origin, serverOrigin, originAllowList });
 
   const tryE2E = async () => {
     const upstream = await fetch("https://api.simli.ai/createE2ESessionToken", {
@@ -82,12 +85,14 @@ export async function GET(req: NextRequest) {
         "x-simli-api-key": apiKey,
       },
       body: JSON.stringify({
-        simliAPIKey: apiKey,
+        apiKey: apiKey,
+        simliAPIKey: apiKey,                // both field names for compatibility
+        agentId: avatarId,
+        agentID: avatarId,                  // both casings for compatibility
+        avatarID: avatarId,
         expiryStamp: Math.floor(Date.now() / 1000) + 1800,
         originAllowList,
         createTranscript: true,
-        avatarID: avatarId,
-        agentID: avatarId,
       }),
       cache: "no-store",
     });
